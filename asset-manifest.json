@@ -1,16 +1,16 @@
 {
   "files": {
     "main.css": "/ollama-gpu-calculator/static/css/main.f855e6bc.css",
-    "main.js": "/ollama-gpu-calculator/static/js/main.943dccc8.js",
+    "main.js": "/ollama-gpu-calculator/static/js/main.9907b33f.js",
     "static/js/453.5de9db1b.chunk.js": "/ollama-gpu-calculator/static/js/453.5de9db1b.chunk.js",
     "static/media/logo.svg": "/ollama-gpu-calculator/static/media/logo.6ce24c58023cc2f8fd88fe9d219db6c6.svg",
     "index.html": "/ollama-gpu-calculator/index.html",
     "main.f855e6bc.css.map": "/ollama-gpu-calculator/static/css/main.f855e6bc.css.map",
-    "main.943dccc8.js.map": "/ollama-gpu-calculator/static/js/main.943dccc8.js.map",
+    "main.9907b33f.js.map": "/ollama-gpu-calculator/static/js/main.9907b33f.js.map",
     "453.5de9db1b.chunk.js.map": "/ollama-gpu-calculator/static/js/453.5de9db1b.chunk.js.map"
   },
   "entrypoints": [
     "static/css/main.f855e6bc.css",
-    "static/js/main.943dccc8.js"
+    "static/js/main.9907b33f.js"
   ]
 }
