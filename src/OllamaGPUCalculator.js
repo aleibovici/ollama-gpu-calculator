@@ -17,6 +17,8 @@ const unsortedGpuSpecs = {
     'h100': { name: 'H100', vram: 80, generation: 'Hopper', tflops: 1979, tdp: 700 },  // Correct: 700W SXM
     'a100-80gb': { name: 'A100 80GB', vram: 80, generation: 'Ampere', tflops: 312, tdp: 400 },  // Correct: 400W SXM
     'a100-40gb': { name: 'A100 40GB', vram: 40, generation: 'Ampere', tflops: 312, tdp: 400 },  // Correct: 400W SXM
+    'l40s': { name: 'L40S', vram: 48, generation: 'Ada Lovelace', tflops: 733, tdp: 350 },  // 48GB GDDR6, 733 TFLOPS FP16, 350W
+    'l4': { name: 'L4', vram: 24, generation: 'Ada Lovelace', tflops: 242, tdp: 72 },  // 24GB GDDR6, 242 TFLOPS FP16, 72W
     'a40': { name: 'A40', vram: 48, generation: 'Ampere', tflops: 149.8, tdp: 300 },  // Correct: 300W
     'v100-32gb': { name: 'V100 32GB', vram: 32, generation: 'Volta', tflops: 125, tdp: 300 },  // Correct: 300W SXM2
     'v100-16gb': { name: 'V100 16GB', vram: 16, generation: 'Volta', tflops: 125, tdp: 300 },  // Correct: 300W SXM2
