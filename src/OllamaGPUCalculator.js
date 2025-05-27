@@ -375,7 +375,7 @@ const OllamaGPUCalculator = () => {
         
         // Add OS-specific warnings
         if (gpuConfigs.some(config => config.gpuModel?.includes('rx'))) {
-            warnings.push('AMD GPUs are currently only supported on Linux with ROCm');
+            warnings.push('AMD GPUs are supported on Windows and Linux with ROCm');
         }
 
         // Add quantization-specific warnings
@@ -769,7 +769,7 @@ const OllamaGPUCalculator = () => {
                     <li>Performance may vary based on model quantization and system capabilities</li>
                     <li>Supported OS: Linux (Ubuntu 18.04+), macOS (11+), Windows (via WSL2)</li>
                     <li>CPU: 4+ cores recommended, 8+ cores for 13B+ models</li>
-                    <li>AMD GPUs require Linux with ROCm support</li>
+                    <li>AMD GPUs are supported on Windows and Linux with ROCm</li>
                     <li>Models can be run in both 'generate' and 'embedding' modes if supported</li>
                     <li>Default context length is 4096 tokens</li>
                     <li>Consider using lower quantization (4-bit/8-bit) for better performance on limited hardware</li>
