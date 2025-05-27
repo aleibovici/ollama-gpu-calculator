@@ -394,18 +394,30 @@ const OllamaGPUCalculator = () => {
 
         const baseStyles = {
             textAlign: 'left',
-            borderRadius: '4px',
-            padding: '10px',
-            marginBottom: '10px'
+            borderRadius: '8px',
+            padding: '15px',
+            marginBottom: '15px',
+            border: '1px solid',
+            transition: 'all 0.3s ease'
         };
 
         // Add warnings section if there are any
         const warningsSection = warnings.length > 0 ? (
-            <div style={{ marginTop: '10px' }}>
-                <p style={{ fontWeight: 'bold', marginBottom: '5px' }}>Warnings:</p>
-                <ul style={{ marginLeft: '20px', marginTop: '5px' }}>
+            <div style={{ marginTop: '15px' }}>
+                <p style={{ 
+                    fontWeight: 'bold', 
+                    marginBottom: '8px',
+                    color: 'inherit'
+                }}>
+                    Warnings:
+                </p>
+                <ul style={{ 
+                    marginLeft: '20px', 
+                    marginTop: '5px',
+                    color: 'inherit'
+                }}>
                     {warnings.map((warning, index) => (
-                        <li key={index}>{warning}</li>
+                        <li key={index} style={{ marginBottom: '4px' }}>{warning}</li>
                     ))}
                 </ul>
             </div>
@@ -413,9 +425,23 @@ const OllamaGPUCalculator = () => {
 
         if (results.isCompatible && !results.isBorderline) {
             return (
-                <div style={{ ...baseStyles, backgroundColor: '#d1fae5', border: '1px solid #34d399' }}>
-                    <h3 style={{ color: '#047857' }}>Compatible Configuration</h3>
-                    <p>
+                <div style={{ 
+                    ...baseStyles, 
+                    backgroundColor: 'var(--success-bg)', 
+                    borderColor: 'var(--success-border)',
+                    color: 'var(--success-text)'
+                }}>
+                    <h3 style={{ 
+                        color: 'var(--success-text)',
+                        marginTop: '0',
+                        marginBottom: '10px'
+                    }}>
+                        ✅ Compatible Configuration
+                    </h3>
+                    <p style={{ 
+                        margin: '0 0 10px 0',
+                        lineHeight: '1.5'
+                    }}>
                         Your GPU setup ({results.gpuConfig}) can handle this model with {results.vramMargin}GB VRAM to spare.
                         Estimated performance: {results.tokensPerSecond} tokens/second.
                     </p>
@@ -424,9 +450,23 @@ const OllamaGPUCalculator = () => {
             );
         } else if (results.isBorderline) {
             return (
-                <div style={{ ...baseStyles, backgroundColor: '#fef3c7', border: '1px solid #fbbf24' }}>
-                    <h3 style={{ color: '#b45309' }}>Borderline Configuration</h3>
-                    <p>
+                <div style={{ 
+                    ...baseStyles, 
+                    backgroundColor: 'var(--warning-bg)', 
+                    borderColor: 'var(--warning-border)',
+                    color: 'var(--warning-text)'
+                }}>
+                    <h3 style={{ 
+                        color: 'var(--warning-text)',
+                        marginTop: '0',
+                        marginBottom: '10px'
+                    }}>
+                        ⚠️ Borderline Configuration
+                    </h3>
+                    <p style={{ 
+                        margin: '0 0 10px 0',
+                        lineHeight: '1.5'
+                    }}>
                         Your GPU setup will work but with only {results.vramMargin}GB VRAM margin. Consider reducing context length or using more GPUs for better performance.
                         Estimated performance: {results.tokensPerSecond} tokens/second.
                     </p>
@@ -435,12 +475,30 @@ const OllamaGPUCalculator = () => {
             );
         } else {
             return (
-                <div style={{ ...baseStyles, backgroundColor: '#fee2e2', border: '1px solid #f87171' }}>
-                    <h3 style={{ color: '#b91c1c' }}>Insufficient VRAM</h3>
-                    <p>
+                <div style={{ 
+                    ...baseStyles, 
+                    backgroundColor: 'var(--error-bg)', 
+                    borderColor: 'var(--error-border)',
+                    color: 'var(--error-text)'
+                }}>
+                    <h3 style={{ 
+                        color: 'var(--error-text)',
+                        marginTop: '0',
+                        marginBottom: '10px'
+                    }}>
+                        ❌ Insufficient VRAM
+                    </h3>
+                    <p style={{ 
+                        margin: '0 0 10px 0',
+                        lineHeight: '1.5'
+                    }}>
                         Your GPU setup lacks {Math.abs(results.vramMargin)}GB VRAM. Consider:
                     </p>
-                    <ul style={{ marginLeft: '20px', marginTop: '10px' }}>
+                    <ul style={{ 
+                        marginLeft: '20px', 
+                        marginTop: '10px',
+                        color: 'inherit'
+                    }}>
                         <li>Using more GPUs</li>
                         <li>Using higher quantization (e.g., 8-bit)</li>
                         <li>Reducing context length</li>
@@ -488,102 +546,153 @@ const OllamaGPUCalculator = () => {
     };
 
     return (
-        <div style={{ maxWidth: '600px', margin: '0 auto', padding: '20px', fontFamily: 'Arial, sans-serif' }}>
-            <h2 style={{ marginBottom: '10px' }}>Ollama GPU Compatibility Calculator</h2>
+        <div style={{ 
+            maxWidth: '600px', 
+            margin: '0 auto', 
+            padding: '20px', 
+            fontFamily: 'Arial, sans-serif',
+            backgroundColor: 'var(--bg-primary)',
+            color: 'var(--text-primary)',
+            minHeight: '100vh'
+        }}>
+            <h2 style={{ 
+                marginBottom: '10px',
+                color: 'var(--text-primary)'
+            }}>
+                Ollama GPU Compatibility Calculator
+            </h2>
             <br />
-            <div style={{ display: 'flex', justifyContent: 'center', gap: '10px', marginBottom: '30px' }}>
+            <div style={{ 
+                display: 'flex', 
+                justifyContent: 'center', 
+                gap: '10px', 
+                marginBottom: '30px' 
+            }}>
                 <a 
                     href="https://www.reddit.com/r/ollama/comments/1gdux20/ollama_gpu_compatibility_calculator/"
                     target="_blank"
                     rel="noopener noreferrer"
                     style={{ 
-                        display: 'inline-flex', 
-                        alignItems: 'center',
-                        color: '#FF4500',
+                        color: 'var(--accent-primary)',
                         textDecoration: 'none',
-                        padding: '8px 12px',
-                        borderRadius: '6px',
-                        transition: 'background-color 0.2s',
-                        hover: {
-                            backgroundColor: '#f0f0f0'
-                        }
+                        padding: '8px 16px',
+                        backgroundColor: 'var(--bg-secondary)',
+                        borderRadius: '8px',
+                        border: '1px solid var(--border-color)',
+                        transition: 'all 0.3s ease',
+                        fontSize: '14px'
+                    }}
+                    onMouseEnter={(e) => {
+                        e.target.style.backgroundColor = 'var(--bg-tertiary)';
+                        e.target.style.borderColor = 'var(--border-hover)';
+                    }}
+                    onMouseLeave={(e) => {
+                        e.target.style.backgroundColor = 'var(--bg-secondary)';
+                        e.target.style.borderColor = 'var(--border-color)';
                     }}
                 >
-                    <svg height="24" width="24" viewBox="0 0 24 24">
-                        <path fill="#FF4500" d="M12 0A12 12 0 0 0 0 12a12 12 0 0 0 12 12 12 12 0 0 0 12-12A12 12 0 0 0 12 0zm5.01 4.744c.688 0 1.25.561 1.25 1.249a1.25 1.25 0 0 1-2.498.056l-2.597-.547-.8 3.747c1.824.07 3.48.632 4.674 1.488.308-.309.73-.491 1.207-.491.968 0 1.754.786 1.754 1.754 0 .716-.435 1.333-1.01 1.614a3.111 3.111 0 0 1 .042.52c0 2.694-3.13 4.87-7.004 4.87-3.874 0-7.004-2.176-7.004-4.87 0-.183.015-.366.043-.534A1.748 1.748 0 0 1 4.028 12c0-.968.786-1.754 1.754-1.754.463 0 .898.196 1.207.49 1.207-.883 2.878-1.43 4.744-1.487l.885-4.182a.342.342 0 0 1 .14-.197.35.35 0 0 1 .238-.042l2.906.617a1.214 1.214 0 0 1 1.108-.701zM9.25 12C8.561 12 8 12.562 8 13.25c0 .687.561 1.248 1.25 1.248.687 0 1.248-.561 1.248-1.249 0-.688-.561-1.249-1.249-1.249zm5.5 0c-.687 0-1.248.561-1.248 1.25 0 .687.561 1.248 1.249 1.248.688 0 1.249-.561 1.249-1.249 0-.687-.562-1.249-1.25-1.249zm-5.466 3.99a.327.327 0 0 0-.231.094.33.33 0 0 0 0 .463c.842.842 2.484.913 2.961.913.477 0 2.105-.056 2.961-.913a.361.361 0 0 0 .029-.463.33.33 0 0 0-.464 0c-.547.533-1.684.73-2.512.73-.828 0-1.979-.196-2.512-.73a.326.326 0 0 0-.232-.095z"/>
-                    </svg>
-                    <span style={{ marginLeft: '8px' }}>View on Reddit</span>
+                    💬 Discuss on Reddit
                 </a>
                 <a 
                     href="https://github.com/aleibovici/ollama-gpu-calculator"
                     target="_blank"
                     rel="noopener noreferrer"
                     style={{ 
-                        display: 'inline-flex', 
-                        alignItems: 'center',
-                        color: '#24292F',
+                        color: 'var(--accent-primary)',
                         textDecoration: 'none',
-                        padding: '8px 12px',
-                        borderRadius: '6px',
-                        transition: 'background-color 0.2s',
-                        hover: {
-                            backgroundColor: '#f0f0f0'
-                        }
+                        padding: '8px 16px',
+                        backgroundColor: 'var(--bg-secondary)',
+                        borderRadius: '8px',
+                        border: '1px solid var(--border-color)',
+                        transition: 'all 0.3s ease',
+                        fontSize: '14px'
+                    }}
+                    onMouseEnter={(e) => {
+                        e.target.style.backgroundColor = 'var(--bg-tertiary)';
+                        e.target.style.borderColor = 'var(--border-hover)';
+                    }}
+                    onMouseLeave={(e) => {
+                        e.target.style.backgroundColor = 'var(--bg-secondary)';
+                        e.target.style.borderColor = 'var(--border-color)';
                     }}
                 >
-                    <svg height="24" width="24" viewBox="0 0 16 16" version="1.1">
-                        <path fillRule="evenodd" d="M8 0C3.58 0 0 3.58 0 8c0 3.54 2.29 6.53 5.47 7.59.4.07.55-.17.55-.38 0-.19-.01-.82-.01-1.49-2.01.37-2.53-.49-2.69-.94-.09-.23-.48-.94-.82-1.13-.28-.15-.68-.52-.01-.53.63-.01 1.08.58 1.23.82.72 1.21 1.87.87 2.33.66.07-.52.28-.87.51-1.07-1.78-.2-3.64-.89-3.64-3.95 0-.87.31-1.59.82-2.15-.08-.2-.36-1.02.08-2.12 0 0 .67-.21 2.2.82.64-.18 1.32-.27 2-.27.68 0 1.36.09 2 .27 1.53-1.04 2.2-.82 2.2-.82.44 1.1.16 1.92.08 2.12.51.56.82 1.27.82 2.15 0 3.07-1.87 3.75-3.65 3.95.29.25.54.73.54 1.48 0 1.07-.01 1.93-.01 2.2 0 .21.15.46.55.38A8.013 8.013 0 0016 8c0-4.42-3.58-8-8-8z" fill="#24292F"/>
-                    </svg>
-                    <span style={{ marginLeft: '8px' }}>View on GitHub</span>
+                    ⭐ Star on GitHub
                 </a>
             </div>
-            <form onSubmit={handleSubmit} style={{ marginBottom: '20px' }}>
+
+            <form onSubmit={handleSubmit}>
                 <div style={{ marginBottom: '20px' }}>
-                    <label htmlFor="parameters" style={{ display: 'block', marginBottom: '5px', textAlign: 'left', fontSize: '16px' }}>Number of Parameters</label>
-                    <div style={{ display: 'flex', alignItems: 'center' }}>
-                        <input
-                            id="parameters"
-                            type="number"
-                            placeholder="e.g., 7"
-                            value={parameters}
-                            onChange={(e) => setParameters(e.target.value)}
-                            style={{ flex: 1, padding: '12px', height: '24px', fontSize: '16px', borderRadius: '8px', border: '1px solid #e5e7eb' }}
-                        />
-                        <span style={{ marginLeft: '10px', fontSize: '16px' }}>billion</span>
-                    </div>
+                    <label htmlFor="parameters" style={{ 
+                        display: 'block', 
+                        marginBottom: '5px', 
+                        textAlign: 'left', 
+                        fontSize: '16px',
+                        color: 'var(--text-primary)'
+                    }}>
+                        Model Parameters (in billions)
+                    </label>
+                    <input
+                        type="number"
+                        id="parameters"
+                        value={parameters}
+                        onChange={(e) => setParameters(parseFloat(e.target.value))}
+                        placeholder="e.g., 7 for 7B model"
+                        min="0.1"
+                        max="200"
+                        step="0.1"
+                        style={{
+                            width: '100%',
+                            padding: '12px',
+                            fontSize: '16px',
+                            borderRadius: '8px',
+                            border: '1px solid var(--border-color)',
+                            backgroundColor: 'var(--bg-input)',
+                            color: 'var(--text-primary)',
+                            boxSizing: 'border-box'
+                        }}
+                        required
+                    />
                 </div>
 
                 <div style={{ marginBottom: '20px' }}>
-                    <label style={{ display: 'block', marginBottom: '5px', textAlign: 'left', fontSize: '16px' }}>GPU Configuration</label>
+                    <label style={{ 
+                        display: 'block', 
+                        marginBottom: '10px', 
+                        textAlign: 'left', 
+                        fontSize: '16px',
+                        color: 'var(--text-primary)'
+                    }}>
+                        GPU Configuration
+                    </label>
                     {gpuConfigs.map((config, index) => (
                         <div key={index} style={{ 
                             display: 'flex', 
                             gap: '10px', 
                             marginBottom: '10px', 
-                            alignItems: 'center',
-                            width: '100%'
+                            alignItems: 'center' 
                         }}>
                             <select
                                 value={config.gpuModel}
                                 onChange={(e) => updateGpuConfig(index, 'gpuModel', e.target.value)}
                                 style={{
-                                    width: '380px',
+                                    flex: 1,
                                     padding: '12px',
                                     height: '50px',
                                     fontSize: '16px',
                                     borderRadius: '8px',
-                                    border: '1px solid #e5e7eb',
+                                    border: '1px solid var(--border-color)',
+                                    backgroundColor: 'var(--bg-input)',
+                                    color: 'var(--text-primary)',
                                     appearance: 'none',
-                                    backgroundImage: `url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='24' height='24' viewBox='0 0 24 24' fill='none' stroke='currentColor' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpolyline points='6 9 12 15 18 9'%3E%3C/polyline%3E%3C/svg%3E")`,
+                                    backgroundImage: `url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='24' height='24' viewBox='0 0 24 24' fill='none' stroke='%23${getComputedStyle(document.documentElement).getPropertyValue('--text-secondary').slice(1)}' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpolyline points='6 9 12 15 18 9'%3E%3C/polyline%3E%3C/svg%3E")`,
                                     backgroundRepeat: 'no-repeat',
-                                    backgroundPosition: 'right 12px center',
-                                    backgroundColor: 'white'
+                                    backgroundPosition: 'right 12px center'
                                 }}
                             >
-                                <option value="">Select GPU model</option>
+                                <option value="">Select GPU Model</option>
                                 {Object.entries(gpuSpecs).map(([key, gpu]) => (
                                     <option key={key} value={key}>
-                                        {gpu.name} ({gpu.vram}GB)
+                                        {gpu.name} ({gpu.vram}GB VRAM)
                                     </option>
                                 ))}
                             </select>
@@ -596,12 +705,13 @@ const OllamaGPUCalculator = () => {
                                     height: '50px',
                                     fontSize: '16px',
                                     borderRadius: '8px',
-                                    border: '1px solid #e5e7eb',
+                                    border: '1px solid var(--border-color)',
+                                    backgroundColor: 'var(--bg-input)',
+                                    color: 'var(--text-primary)',
                                     appearance: 'none',
-                                    backgroundImage: `url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='24' height='24' viewBox='0 0 24 24' fill='none' stroke='currentColor' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpolyline points='6 9 12 15 18 9'%3E%3C/polyline%3E%3C/svg%3E")`,
+                                    backgroundImage: `url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='24' height='24' viewBox='0 0 24 24' fill='none' stroke='%23${getComputedStyle(document.documentElement).getPropertyValue('--text-secondary').slice(1)}' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpolyline points='6 9 12 15 18 9'%3E%3C/polyline%3E%3C/svg%3E")`,
                                     backgroundRepeat: 'no-repeat',
-                                    backgroundPosition: 'right 12px center',
-                                    backgroundColor: 'white'
+                                    backgroundPosition: 'right 12px center'
                                 }}
                             >
                                 {[1, 2, 3, 4, 8].map((count) => (
@@ -619,12 +729,13 @@ const OllamaGPUCalculator = () => {
                                             width: '80px',
                                             height: '50px',
                                             padding: '8px',
-                                            backgroundColor: '#ef4444',
-                                            color: 'white',
+                                            backgroundColor: 'var(--accent-danger)',
+                                            color: 'var(--text-inverse)',
                                             border: 'none',
                                             borderRadius: '8px',
                                             cursor: 'pointer',
-                                            fontSize: '14px'
+                                            fontSize: '14px',
+                                            transition: 'all 0.3s ease'
                                         }}
                                     >
                                         Remove
@@ -638,12 +749,13 @@ const OllamaGPUCalculator = () => {
                         onClick={addGpuConfig}
                         style={{
                             padding: '8px 16px',
-                            backgroundColor: '#10b981',
-                            color: 'white',
+                            backgroundColor: 'var(--accent-secondary)',
+                            color: 'var(--text-inverse)',
                             border: 'none',
                             borderRadius: '8px',
                             cursor: 'pointer',
-                            marginTop: '10px'
+                            marginTop: '10px',
+                            transition: 'all 0.3s ease'
                         }}
                     >
                         + Add Another GPU
@@ -651,7 +763,15 @@ const OllamaGPUCalculator = () => {
                 </div>
 
                 <div style={{ marginBottom: '20px' }}>
-                    <label htmlFor="quantization" style={{ display: 'block', marginBottom: '5px', textAlign: 'left', fontSize: '16px' }}>Quantization</label>
+                    <label htmlFor="quantization" style={{ 
+                        display: 'block', 
+                        marginBottom: '5px', 
+                        textAlign: 'left', 
+                        fontSize: '16px',
+                        color: 'var(--text-primary)'
+                    }}>
+                        Quantization
+                    </label>
                     <select
                         id="quantization"
                         value={quantization}
@@ -662,12 +782,13 @@ const OllamaGPUCalculator = () => {
                             height: '50px',
                             fontSize: '16px',
                             borderRadius: '8px',
-                            border: '1px solid #e5e7eb',
+                            border: '1px solid var(--border-color)',
+                            backgroundColor: 'var(--bg-input)',
+                            color: 'var(--text-primary)',
                             appearance: 'none',
-                            backgroundImage: `url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='24' height='24' viewBox='0 0 24 24' fill='none' stroke='currentColor' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpolyline points='6 9 12 15 18 9'%3E%3C/polyline%3E%3C/svg%3E")`,
+                            backgroundImage: `url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='24' height='24' viewBox='0 0 24 24' fill='none' stroke='%23${getComputedStyle(document.documentElement).getPropertyValue('--text-secondary').slice(1)}' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpolyline points='6 9 12 15 18 9'%3E%3C/polyline%3E%3C/svg%3E")`,
                             backgroundRepeat: 'no-repeat',
-                            backgroundPosition: 'right 12px center',
-                            backgroundColor: 'white'
+                            backgroundPosition: 'right 12px center'
                         }}
                     >
                         <option value="32">32-bit (FP32)</option>
@@ -678,7 +799,15 @@ const OllamaGPUCalculator = () => {
                 </div>
 
                 <div style={{ marginBottom: '20px' }}>
-                    <label style={{ display: 'block', marginBottom: '5px', textAlign: 'left', fontSize: '16px' }}>Context Length: {contextLength}</label>
+                    <label style={{ 
+                        display: 'block', 
+                        marginBottom: '5px', 
+                        textAlign: 'left', 
+                        fontSize: '16px',
+                        color: 'var(--text-primary)'
+                    }}>
+                        Context Length: {contextLength}
+                    </label>
                     <select
                         value={contextLength}
                         onChange={(e) => handleContextLengthChange(e.target.value)}
@@ -688,12 +817,13 @@ const OllamaGPUCalculator = () => {
                             height: '50px',
                             fontSize: '16px',
                             borderRadius: '8px',
-                            border: '1px solid #e5e7eb',
+                            border: '1px solid var(--border-color)',
+                            backgroundColor: 'var(--bg-input)',
+                            color: 'var(--text-primary)',
                             appearance: 'none',
-                            backgroundImage: `url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='24' height='24' viewBox='0 0 24 24' fill='none' stroke='currentColor' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpolyline points='6 9 12 15 18 9'%3E%3C/polyline%3E%3C/svg%3E")`,
+                            backgroundImage: `url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='24' height='24' viewBox='0 0 24 24' fill='none' stroke='%23${getComputedStyle(document.documentElement).getPropertyValue('--text-secondary').slice(1)}' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpolyline points='6 9 12 15 18 9'%3E%3C/polyline%3E%3C/svg%3E")`,
                             backgroundRepeat: 'no-repeat',
-                            backgroundPosition: 'right 12px center',
-                            backgroundColor: 'white'
+                            backgroundPosition: 'right 12px center'
                         }}
                     >
                         {[4096, 8192, 16384, 32768, 65536, 131072].map((length) => (
@@ -709,41 +839,126 @@ const OllamaGPUCalculator = () => {
                 <div>
                     {getCompatibilityMessage()}
 
-                    <div style={{ marginTop: '20px', padding: '15px', backgroundColor: '#f3f4f6', borderRadius: '4px', textAlign: 'left' }}>
+                    <div style={{ 
+                        marginTop: '20px', 
+                        padding: '15px', 
+                        backgroundColor: 'var(--bg-card)', 
+                        borderRadius: '8px', 
+                        textAlign: 'left',
+                        border: '1px solid var(--border-color)',
+                        boxShadow: 'var(--shadow-md)'
+                    }}>
                         <div style={{ marginBottom: '20px' }}>
-                            <label style={{ fontSize: '14px', fontWeight: 'normal', marginBottom: '2px', display: 'block' }}>Required GPU VRAM:</label>
-                            <p style={{ fontSize: '24px', fontWeight: 'bold', color: '#2563eb', margin: '0 0 10px 0' }}>{results.gpuRAM} GB</p>
-                            <div style={{ fontSize: '14px', color: '#4b5563', lineHeight: '1.2', marginTop: '8px' }}>
+                            <label style={{ 
+                                fontSize: '14px', 
+                                fontWeight: 'normal', 
+                                marginBottom: '2px', 
+                                display: 'block',
+                                color: 'var(--text-secondary)'
+                            }}>
+                                Required GPU VRAM:
+                            </label>
+                            <p style={{ 
+                                fontSize: '24px', 
+                                fontWeight: 'bold', 
+                                color: 'var(--accent-primary)', 
+                                margin: '0 0 10px 0' 
+                            }}>
+                                {results.gpuRAM} GB
+                            </p>
+                            <div style={{ 
+                                fontSize: '14px', 
+                                color: 'var(--text-tertiary)', 
+                                lineHeight: '1.2', 
+                                marginTop: '8px' 
+                            }}>
                                 <p style={{ margin: '0' }}>Base Model: {results.modelSize} GB</p>
                                 <p style={{ margin: '0' }}>KV Cache: {results.kvCache} GB</p>
                             </div>
                         </div>
                         <div style={{ marginBottom: '20px' }}>
-                            <label style={{ fontSize: '14px', fontWeight: 'normal', marginBottom: '2px', display: 'block' }}>Available VRAM:</label>
-                            <p style={{ fontSize: '24px', fontWeight: 'bold', color: '#059669', margin: '0 0 10px 0' }}>{results.availableVRAM} GB</p>
+                            <label style={{ 
+                                fontSize: '14px', 
+                                fontWeight: 'normal', 
+                                marginBottom: '2px', 
+                                display: 'block',
+                                color: 'var(--text-secondary)'
+                            }}>
+                                Available VRAM:
+                            </label>
+                            <p style={{ 
+                                fontSize: '24px', 
+                                fontWeight: 'bold', 
+                                color: 'var(--accent-secondary)', 
+                                margin: '0 0 10px 0' 
+                            }}>
+                                {results.availableVRAM} GB
+                            </p>
                         </div>
                         <div style={{ marginBottom: '20px' }}>
-                            <label style={{ fontSize: '14px', fontWeight: 'normal', marginBottom: '2px', display: 'block' }}>Required System RAM:</label>
-                            <p style={{ fontSize: '24px', fontWeight: 'bold', color: '#7c3aed', margin: '0 0 10px 0' }}>{results.systemRAM} GB</p>
+                            <label style={{ 
+                                fontSize: '14px', 
+                                fontWeight: 'normal', 
+                                marginBottom: '2px', 
+                                display: 'block',
+                                color: 'var(--text-secondary)'
+                            }}>
+                                Required System RAM:
+                            </label>
+                            <p style={{ 
+                                fontSize: '24px', 
+                                fontWeight: 'bold', 
+                                color: 'var(--accent-tertiary)', 
+                                margin: '0 0 10px 0' 
+                            }}>
+                                {results.systemRAM} GB
+                            </p>
                         </div>
                         {results.tokensPerSecond && (
                             <div>
-                                <label style={{ fontSize: '14px', fontWeight: 'normal', marginBottom: '2px', display: 'block' }}>
+                                <label style={{ 
+                                    fontSize: '14px', 
+                                    fontWeight: 'normal', 
+                                    marginBottom: '2px', 
+                                    display: 'block',
+                                    color: 'var(--text-secondary)'
+                                }}>
                                     Estimated Performance:
                                 </label>
-                                <p style={{ fontSize: '24px', fontWeight: 'bold', color: '#d97706', margin: '0 0 10px 0' }}>
+                                <p style={{ 
+                                    fontSize: '24px', 
+                                    fontWeight: 'bold', 
+                                    color: 'var(--accent-warning)', 
+                                    margin: '0 0 10px 0' 
+                                }}>
                                     {results.tokensPerSecond} tokens/second
                                 </p>
                             </div>
                         )}
                         <div style={{ marginBottom: '20px', marginTop: '20px' }}>
-                            <label style={{ fontSize: '14px', fontWeight: 'normal', marginBottom: '2px', display: 'block' }}>
+                            <label style={{ 
+                                fontSize: '14px', 
+                                fontWeight: 'normal', 
+                                marginBottom: '2px', 
+                                display: 'block',
+                                color: 'var(--text-secondary)'
+                            }}>
                                 Estimated Power Consumption:
                             </label>
-                            <p style={{ fontSize: '24px', fontWeight: 'bold', color: '#dc2626', margin: '0 0 10px 0' }}>
+                            <p style={{ 
+                                fontSize: '24px', 
+                                fontWeight: 'bold', 
+                                color: 'var(--accent-danger)', 
+                                margin: '0 0 10px 0' 
+                            }}>
                                 {results.powerConsumption.totalPower}W
                             </p>
-                            <div style={{ fontSize: '14px', color: '#4b5563', lineHeight: '1.2', marginTop: '8px' }}>
+                            <div style={{ 
+                                fontSize: '14px', 
+                                color: 'var(--text-tertiary)', 
+                                lineHeight: '1.2', 
+                                marginTop: '8px' 
+                            }}>
                                 {results.powerConsumption.powerDetails.map((detail, index) => (
                                     <p key={index} style={{ margin: '0' }}>
                                         {detail.count}x {detail.name}: {detail.power}W ({detail.baseWatts}W per GPU at {Math.round(results.powerConsumption.utilizationFactor * 100)}% utilization)
@@ -756,7 +971,12 @@ const OllamaGPUCalculator = () => {
                 </div>
             )}
 
-            <div style={{ fontSize: '14px', color: '#6b7280', marginTop: '20px', textAlign: 'left' }}>
+            <div style={{ 
+                fontSize: '14px', 
+                color: 'var(--text-tertiary)', 
+                marginTop: '20px', 
+                textAlign: 'left' 
+            }}>
                 <p>Notes:</p>
                 <ul style={{ paddingLeft: '20px', textAlign: 'left' }}>
                     <li>Multi-GPU setups may have slightly lower efficiency than theoretical maximum</li>

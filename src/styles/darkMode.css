@@ -1,0 +1,155 @@
+/* Dark Mode CSS Variables and Styles */
+
+:root {
+  /* Light mode colors */
+  --bg-primary: #ffffff;
+  --bg-secondary: #f8f9fa;
+  --bg-tertiary: #f3f4f6;
+  --bg-card: #ffffff;
+  --bg-input: #ffffff;
+  
+  --text-primary: #1f2937;
+  --text-secondary: #4b5563;
+  --text-tertiary: #6b7280;
+  --text-inverse: #ffffff;
+  
+  --border-color: #e5e7eb;
+  --border-hover: #d1d5db;
+  
+  --accent-primary: #2563eb;
+  --accent-secondary: #059669;
+  --accent-tertiary: #7c3aed;
+  --accent-warning: #d97706;
+  --accent-danger: #dc2626;
+  
+  --success-bg: #d1fae5;
+  --success-border: #34d399;
+  --success-text: #047857;
+  
+  --warning-bg: #fef3c7;
+  --warning-border: #fbbf24;
+  --warning-text: #b45309;
+  
+  --error-bg: #fee2e2;
+  --error-border: #f87171;
+  --error-text: #b91c1c;
+  
+  --shadow-sm: 0 1px 2px 0 rgb(0 0 0 / 0.05);
+  --shadow-md: 0 4px 6px -1px rgb(0 0 0 / 0.1), 0 2px 4px -2px rgb(0 0 0 / 0.1);
+  --shadow-lg: 0 10px 15px -3px rgb(0 0 0 / 0.1), 0 4px 6px -4px rgb(0 0 0 / 0.1);
+  
+  /* Toggle button colors */
+  --toggle-bg: #f3f4f6;
+  --toggle-bg-hover: #e5e7eb;
+  --toggle-color: #4b5563;
+  --toggle-shadow: var(--shadow-sm);
+  
+  /* Image filters */
+  --image-opacity: 1;
+  --image-brightness: 1;
+}
+
+.dark-mode {
+  /* Dark mode colors */
+  --bg-primary: #111827;
+  --bg-secondary: #1f2937;
+  --bg-tertiary: #374151;
+  --bg-card: #1f2937;
+  --bg-input: #374151;
+  
+  --text-primary: #f9fafb;
+  --text-secondary: #e5e7eb;
+  --text-tertiary: #d1d5db;
+  --text-inverse: #1f2937;
+  
+  --border-color: #4b5563;
+  --border-hover: #6b7280;
+  
+  --accent-primary: #3b82f6;
+  --accent-secondary: #10b981;
+  --accent-tertiary: #8b5cf6;
+  --accent-warning: #f59e0b;
+  --accent-danger: #ef4444;
+  
+  --success-bg: #064e3b;
+  --success-border: #059669;
+  --success-text: #34d399;
+  
+  --warning-bg: #451a03;
+  --warning-border: #d97706;
+  --warning-text: #fbbf24;
+  
+  --error-bg: #450a0a;
+  --error-border: #dc2626;
+  --error-text: #f87171;
+  
+  --shadow-sm: 0 1px 2px 0 rgb(0 0 0 / 0.3);
+  --shadow-md: 0 4px 6px -1px rgb(0 0 0 / 0.4), 0 2px 4px -2px rgb(0 0 0 / 0.4);
+  --shadow-lg: 0 10px 15px -3px rgb(0 0 0 / 0.5), 0 4px 6px -4px rgb(0 0 0 / 0.5);
+  
+  /* Toggle button colors */
+  --toggle-bg: #374151;
+  --toggle-bg-hover: #4b5563;
+  --toggle-color: #f9fafb;
+  --toggle-shadow: var(--shadow-md);
+  
+  /* Image filters for dark mode */
+  --image-opacity: 0.9;
+  --image-brightness: 0.8;
+}
+
+/* Global dark mode styles */
+body {
+  background-color: var(--bg-primary);
+  color: var(--text-primary);
+  transition: background-color 0.3s ease, color 0.3s ease;
+}
+
+/* Image adjustments for dark mode */
+.dark-mode img:not(.no-filter) {
+  filter: brightness(var(--image-brightness)) opacity(var(--image-opacity));
+  transition: filter 0.3s ease;
+}
+
+/* Scrollbar styling for dark mode */
+.dark-mode ::-webkit-scrollbar {
+  width: 8px;
+  height: 8px;
+}
+
+.dark-mode ::-webkit-scrollbar-track {
+  background: var(--bg-secondary);
+}
+
+.dark-mode ::-webkit-scrollbar-thumb {
+  background: var(--border-color);
+  border-radius: 4px;
+}
+
+.dark-mode ::-webkit-scrollbar-thumb:hover {
+  background: var(--border-hover);
+}
+
+/* Selection styling */
+.dark-mode ::selection {
+  background-color: var(--accent-primary);
+  color: var(--text-inverse);
+}
+
+/* Focus indicators with better contrast */
+.dark-mode *:focus {
+  outline: 2px solid var(--accent-primary);
+  outline-offset: 2px;
+}
+
+/* Smooth transitions for all interactive elements */
+* {
+  transition: background-color 0.3s ease, color 0.3s ease, border-color 0.3s ease;
+}
+
+/* Media query fallback for users who prefer reduced motion */
+@media (prefers-reduced-motion: reduce) {
+  * {
+    transition: none !important;
+  }
+} 
