@@ -22,6 +22,7 @@ const unsortedGpuSpecs = {
     'v100-16gb': { name: 'V100 16GB', vram: 16, generation: 'Volta', tflops: 125, tdp: 300 },  // Correct: 300W SXM2
     'rtx4090': { name: 'RTX 4090', vram: 24, generation: 'Ada Lovelace', tflops: 82.6, tdp: 450 },  // Correct: 450W
     'rtx4080': { name: 'RTX 4080', vram: 16, generation: 'Ada Lovelace', tflops: 65, tdp: 320 },  // Correct: 320W
+    'rtx4070super': { name: 'RTX 4070 Super', vram: 12, generation: 'Ada Lovelace', tflops: 35.48, tdp: 220 },  // Correct: 220W
     'rtx3090ti': { name: 'RTX 3090 Ti', vram: 24, generation: 'Ampere', tflops: 40, tdp: 450 },  // Correct: 450W
     'rtx3090': { name: 'RTX 3090', vram: 24, generation: 'Ampere', tflops: 35.6, tdp: 350 },  // Correct: 350W
     'rtx3080ti': { name: 'RTX 3080 Ti', vram: 12, generation: 'Ampere', tflops: 34.1, tdp: 350 },  // Correct: 350W
@@ -30,6 +31,7 @@ const unsortedGpuSpecs = {
     'a5000': { name: 'A5000', vram: 24, generation: 'Ampere', tflops: 27.8, tdp: 230 },  // Correct: 230W
     'a4000': { name: 'A4000', vram: 16, generation: 'Ampere', tflops: 19.2, tdp: 140 },  // Correct: 140W
     'rtx4060ti': { name: 'RTX 4060 Ti', vram: 8, generation: 'Ada Lovelace', tflops: 22.1, tdp: 160 },  // Correct: 160W
+    'rtx4060ti16gb': { name: 'RTX 4060 Ti 16GB', vram: 16, generation: 'Ada Lovelace', tflops: 22.06, tdp: 165 },  // Correct: 165W
     'gtx1080ti': { name: 'GTX 1080 Ti', vram: 11, generation: 'Pascal', tflops: 11.3, tdp: 250 },  // Correct: 250W
     'gtx1070ti': { name: 'GTX 1070 Ti', vram: 8, generation: 'Pascal', tflops: 8.1, tdp: 180 },  // Correct: 180W
     'teslap40': { name: 'Tesla P40', vram: 24, generation: 'Pascal', tflops: 12, tdp: 250 },  // Correct: 250W
