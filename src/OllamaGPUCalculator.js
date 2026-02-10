@@ -49,6 +49,12 @@ const unsortedGpuSpecs = {
     'rx7900gre': { name: 'Radeon RX 7900 GRE', vram: 16, generation: 'RDNA3', tflops: 46, tdp: 260 },  // Correct: 260W
     'rx7800xt': { name: 'Radeon RX 7800 XT', vram: 16, generation: 'RDNA3', tflops: 37, tdp: 263 },  // Correct: 263W
     'rx7700xt': { name: 'Radeon RX 7700 XT', vram: 12, generation: 'RDNA3', tflops: 35, tdp: 245 },  // Correct: 245W
+	'rx9070xt': { name: 'Radeon RX 9070 XT', vram: 16, generation: 'RDNA4', tflops: 195, tdp: 304 },  // taken from AMD.com spec sheet, TFLOPS from peak half-precision (FP16 Matrix) performance
+	'rx9070': { name: 'Radeon RX 9070', vram: 16, generation: 'RDNA4', tflops: 145, tdp: 220 },  // taken from AMD.com spec sheet, TFLOPS from peak half-precision (FP16 Matrix) performance
+	'rx9060xt1': { name: 'Radeon RX 9060 XT', vram: 16, generation: 'RDNA4', tflops: 103, tdp: 160 },  // taken from AMD.com spec sheet, TFLOPS from peak half-precision (FP16 Matrix) performance
+	'rx9060xt2': { name: 'Radeon RX 9060 XT', vram: 8, generation: 'RDNA4', tflops: 103, tdp: 150 },  // taken from AMD.com spec sheet, TFLOPS from peak half-precision (FP16 Matrix) performance
+	'rx9060xt3': { name: 'Radeon RX 9060 XT LP', vram: 16, generation: 'RDNA4', tflops: 100, tdp: 140 },  // taken from AMD.com spec sheet, TFLOPS from peak half-precision (FP16 Matrix) performance
+	'rx9060': { name: 'Radeon RX 9060', vram: 8, generation: 'RDNA4', tflops: 86, tdp: 132 },  // taken from AMD.com spec sheet, TFLOPS from peak half-precision (FP16 Matrix) performance
 };
 
 const gpuSpecs = Object.fromEntries(
