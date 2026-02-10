@@ -58,6 +58,13 @@ const unsortedGpuSpecs = {
 	'radaipro': { name: 'Radeon AI Pro R9700', vram: 32, generation: 'RDNA4', tflops: 191, tdp: 300 },  
 	'radaipros': { name: 'Radeon AI Pro R9700S', vram: 32, generation: 'RDNA4', tflops: 191, tdp: 300 },  // I might not be looking carefully enough, but... this + the GPU above seem basically identical 
 	'radaiprod': { name: 'Radeon AI Pro R9700D', vram: 32, generation: 'RDNA4', tflops: 99, tdp: 150 },
+	'mi355x': { name: 'Instinct MI355X', vram: 288, generation: 'CDNA4', tflops: 2500, tdp: 1400 },
+	'mi350x': { name: 'Instinct MI350X', vram: 288, generation: 'CDNA4', tflops: 2300, tdp: 1000 },
+	'mi325x': { name: 'Instinct MI325X', vram: 256, generation: 'CDNA3', tflops: 1300, tdp: 1000 },
+	'mi300x': { name: 'Instinct MI300X', vram: 192, generation: 'CDNA3', tflops: 1300, tdp: 750 },
+	'mi250x': { name: 'Instinct MI250X', vram: 128, generation: 'CDNA2', tflops: 383, tdp: 560 },
+	'mi250': { name: 'Instinct MI250', vram: 128, generation: 'CDNA2', tflops: 362.1, tdp: 560 },
+	'mi210': { name: 'Instinct MI210', vram: 64, generation: 'CDNA2', tflops: 181, tdp: 300 },
 };
 
 const gpuSpecs = Object.fromEntries(
