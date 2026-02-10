@@ -236,25 +236,35 @@ const OllamaGPUCalculator = () => {
     const [contextLength, setContextLength] = useState(4096);
     const [gpuConfigs, setGpuConfigs] = useState([{ gpuModel: '', count: '1' }]);
     const [results, setResults] = useState(null);
+    const [validationErrors, setValidationErrors] = useState({});
 
     const calculateOllamaRAM = useCallback(() => {
-        // Input validation
-        if (!parameters || isNaN(parameters) || parameters <= 0) {
-            alert('Please enter a valid number of parameters greater than 0');
+        setValidationErrors({});
+
+        const paramCount = parseFloat(parameters);
+        const paramsValid = parameters.trim() !== '' && !Number.isNaN(paramCount) && paramCount > 0;
+
+        if (!paramsValid) {
+            if (parameters.trim() !== '') {
+                setValidationErrors({ parameters: 'Please enter a valid number greater than 0 (e.g. 7 for 7B)' });
+            }
+            setResults(null);
             return;
         }
 
         if (!gpuConfigs.some(config => config.gpuModel)) {
-            alert('Please select at least one GPU model');
+            setValidationErrors({ gpu: 'Please select at least one GPU model' });
+            setResults(null);
             return;
         }
 
-        // Validate GPU counts
-        const invalidGpuCount = gpuConfigs.some(config => 
-            config.gpuModel && (parseInt(config.count) <= 0 || isNaN(parseInt(config.count)))
-        );
+        const invalidGpuCount = gpuConfigs.some((config) => {
+            const n = parseInt(config.count, 10);
+            return config.gpuModel && (n <= 0 || Number.isNaN(n));
+        });
         if (invalidGpuCount) {
-            alert('Invalid GPU count detected. Please check your GPU configuration.');
+            setValidationErrors({ gpuCount: 'Invalid GPU count. Please use 1 or more per slot.' });
+            setResults(null);
             return;
         }
 
@@ -263,10 +273,8 @@ const OllamaGPUCalculator = () => {
             category: 'Calculator',
             action: 'Calculate',
             label: 'Mixed GPU Configuration',
-            value: parseInt(parameters)
+            value: Math.round(paramCount)
         });
-
-        const paramCount = parseFloat(parameters);
         const quantBits = parseInt(quantization);
 
         try {
@@ -350,14 +358,18 @@ const OllamaGPUCalculator = () => {
             });
         } catch (error) {
             console.error('Calculation error:', error);
-            alert('An error occurred during calculations. Please check your inputs and try again.');
+            setValidationErrors({ calculation: 'An error occurred during calculations. Please check your inputs and try again.' });
+            setResults(null);
         }
     }, [parameters, quantization, contextLength, gpuConfigs]);
 
     useEffect(() => {
-        if (parameters && gpuConfigs.some(config => config.gpuModel)) {
-            calculateOllamaRAM();
+        if (!parameters.trim() && !gpuConfigs.some(config => config.gpuModel)) {
+            setResults(null);
+            setValidationErrors({});
+            return;
         }
+        calculateOllamaRAM();
     }, [
         parameters,
         quantization,
@@ -375,15 +387,17 @@ const OllamaGPUCalculator = () => {
         
         let warnings = [];
         
-        // Add model size-specific warnings
-        if (parameters <= 3) {
-            warnings.push('3B model: Minimum 8GB RAM recommended');
-        } else if (parameters <= 7) {
-            warnings.push('7B model: Minimum 16GB RAM recommended');
-        } else if (parameters <= 13) {
-            warnings.push('13B model: Minimum 32GB RAM recommended');
-        } else {
-            warnings.push('70B model: Minimum 64GB RAM recommended');
+        const paramNum = parseFloat(parameters);
+        if (!Number.isNaN(paramNum)) {
+            if (paramNum <= 3) {
+                warnings.push('3B model: Minimum 8GB RAM recommended');
+            } else if (paramNum <= 7) {
+                warnings.push('7B model: Minimum 16GB RAM recommended');
+            } else if (paramNum <= 13) {
+                warnings.push('13B model: Minimum 32GB RAM recommended');
+            } else {
+                warnings.push('70B model: Minimum 64GB RAM recommended');
+            }
         }
         
         // Add OS-specific warnings
@@ -566,14 +580,21 @@ const OllamaGPUCalculator = () => {
             color: 'var(--text-primary)',
             minHeight: '100vh'
         }}>
-            <h2 style={{ 
-                marginBottom: '10px',
+            <h2 style={{
+                marginBottom: '8px',
                 color: 'var(--text-primary)'
             }}>
                 Ollama GPU Compatibility Calculator
             </h2>
-            <br />
-            <div style={{ 
+            <p style={{
+                marginBottom: '24px',
+                fontSize: '15px',
+                color: 'var(--text-secondary)',
+                lineHeight: '1.5'
+            }}>
+                Check if your GPU can run Ollama models and see estimated VRAM, performance, and power.
+            </p>
+            <div style={{
                 display: 'flex', 
                 justifyContent: 'center', 
                 gap: '10px', 
@@ -594,17 +615,17 @@ const OllamaGPUCalculator = () => {
                         fontSize: '14px'
                     }}
                     onMouseEnter={(e) => {
-                        e.target.style.backgroundColor = 'var(--bg-tertiary)';
-                        e.target.style.borderColor = 'var(--border-hover)';
+                        e.currentTarget.style.backgroundColor = 'var(--bg-tertiary)';
+                        e.currentTarget.style.borderColor = 'var(--border-hover)';
                     }}
                     onMouseLeave={(e) => {
-                        e.target.style.backgroundColor = 'var(--bg-secondary)';
-                        e.target.style.borderColor = 'var(--border-color)';
+                        e.currentTarget.style.backgroundColor = 'var(--bg-secondary)';
+                        e.currentTarget.style.borderColor = 'var(--border-color)';
                     }}
                 >
                     💬 Discuss on Reddit
                 </a>
-                <a 
+                <a
                     href="https://github.com/aleibovici/ollama-gpu-calculator"
                     target="_blank"
                     rel="noopener noreferrer"
@@ -619,19 +640,49 @@ const OllamaGPUCalculator = () => {
                         fontSize: '14px'
                     }}
                     onMouseEnter={(e) => {
-                        e.target.style.backgroundColor = 'var(--bg-tertiary)';
-                        e.target.style.borderColor = 'var(--border-hover)';
+                        e.currentTarget.style.backgroundColor = 'var(--bg-tertiary)';
+                        e.currentTarget.style.borderColor = 'var(--border-hover)';
                     }}
                     onMouseLeave={(e) => {
-                        e.target.style.backgroundColor = 'var(--bg-secondary)';
-                        e.target.style.borderColor = 'var(--border-color)';
+                        e.currentTarget.style.backgroundColor = 'var(--bg-secondary)';
+                        e.currentTarget.style.borderColor = 'var(--border-color)';
                     }}
                 >
                     ⭐ Star on GitHub
                 </a>
             </div>
 
-            <form onSubmit={handleSubmit}>
+            <section
+                aria-labelledby="calculator-inputs-heading"
+                style={{
+                    backgroundColor: 'var(--bg-card)',
+                    border: '1px solid var(--border-color)',
+                    borderRadius: '12px',
+                    padding: '24px',
+                    marginBottom: '24px',
+                    boxShadow: 'var(--shadow-md)'
+                }}
+            >
+                <h3 id="calculator-inputs-heading" style={{ margin: '0 0 20px', fontSize: '18px', color: 'var(--text-primary)' }}>
+                    Inputs
+                </h3>
+                <form onSubmit={handleSubmit}>
+                {validationErrors.calculation && (
+                    <div
+                        role="alert"
+                        style={{
+                            marginBottom: '20px',
+                            padding: '12px 16px',
+                            backgroundColor: 'var(--error-bg)',
+                            border: '1px solid var(--error-border)',
+                            borderRadius: '8px',
+                            color: 'var(--error-text)',
+                            fontSize: '14px'
+                        }}
+                    >
+                        {validationErrors.calculation}
+                    </div>
+                )}
                 <div style={{ marginBottom: '20px' }}>
                     <label htmlFor="parameters" style={{ 
                         display: 'block', 
@@ -646,7 +697,7 @@ const OllamaGPUCalculator = () => {
                         type="number"
                         id="parameters"
                         value={parameters}
-                        onChange={(e) => setParameters(parseFloat(e.target.value))}
+                        onChange={(e) => setParameters(e.target.value)}
                         placeholder="e.g., 7 for 7B model"
                         min="0.1"
                         max="200"
@@ -661,20 +712,29 @@ const OllamaGPUCalculator = () => {
                             color: 'var(--text-primary)',
                             boxSizing: 'border-box'
                         }}
-                        required
                     />
+                    {validationErrors.parameters && (
+                        <p style={{ margin: '6px 0 0', fontSize: '14px', color: 'var(--error-text)' }} role="alert">
+                            {validationErrors.parameters}
+                        </p>
+                    )}
                 </div>
 
                 <div style={{ marginBottom: '20px' }}>
-                    <label style={{ 
-                        display: 'block', 
-                        marginBottom: '10px', 
-                        textAlign: 'left', 
+                    <label style={{
+                        display: 'block',
+                        marginBottom: '10px',
+                        textAlign: 'left',
                         fontSize: '16px',
                         color: 'var(--text-primary)'
                     }}>
                         GPU Configuration
                     </label>
+                    {(validationErrors.gpu || validationErrors.gpuCount) && (
+                        <p style={{ margin: '0 0 10px', fontSize: '14px', color: 'var(--error-text)' }} role="alert">
+                            {validationErrors.gpu || validationErrors.gpuCount}
+                        </p>
+                    )}
                     {gpuConfigs.map((config, index) => (
                         <div key={index} style={{ 
                             display: 'flex', 
@@ -810,7 +870,7 @@ const OllamaGPUCalculator = () => {
                 </div>
 
                 <div style={{ marginBottom: '20px' }}>
-                    <label style={{ 
+                    <label htmlFor="context-length" style={{ 
                         display: 'block', 
                         marginBottom: '5px', 
                         textAlign: 'left', 
@@ -820,6 +880,7 @@ const OllamaGPUCalculator = () => {
                         Context Length: {contextLength}
                     </label>
                     <select
+                        id="context-length"
                         value={contextLength}
                         onChange={(e) => handleContextLengthChange(e.target.value)}
                         style={{
@@ -844,10 +905,36 @@ const OllamaGPUCalculator = () => {
                         ))}
                     </select>
                 </div>
-            </form>
+                </form>
+            </section>
 
             {results && (
-                <div>
+                <section
+                    aria-labelledby="calculator-results-heading"
+                    style={{
+                        backgroundColor: 'var(--bg-card)',
+                        border: '1px solid var(--border-color)',
+                        borderRadius: '12px',
+                        padding: '24px',
+                        marginBottom: '24px',
+                        boxShadow: 'var(--shadow-md)'
+                    }}
+                >
+                    <h3 id="calculator-results-heading" style={{ margin: '0 0 16px', fontSize: '18px', color: 'var(--text-primary)' }}>
+                        Results
+                    </h3>
+                    <p style={{
+                        margin: '0 0 20px',
+                        fontSize: '16px',
+                        fontWeight: '600',
+                        color: 'var(--text-primary)'
+                    }}>
+                        {results.gpuRAM} GB VRAM needed
+                        {' · '}
+                        {results.isCompatible && !results.isBorderline && 'Compatible'}
+                        {results.isBorderline && 'Borderline'}
+                        {!results.isCompatible && 'Insufficient VRAM'}
+                    </p>
                     {getCompatibilityMessage()}
 
                     <div style={{ 
@@ -979,11 +1066,11 @@ const OllamaGPUCalculator = () => {
                             </div>
                         </div>
                     </div>
-                </div>
+                </section>
             )}
 
-            <div style={{ 
-                fontSize: '14px', 
+            <div style={{
+                fontSize: '14px',
                 color: 'var(--text-tertiary)', 
                 marginTop: '20px', 
                 textAlign: 'left' 

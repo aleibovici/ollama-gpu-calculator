@@ -136,7 +136,15 @@ body {
   color: var(--text-inverse);
 }
 
-/* Focus indicators with better contrast */
+/* Focus indicators for keyboard users (light and dark) */
+:root *:focus-visible,
+.dark-mode *:focus-visible {
+  outline: 2px solid var(--accent-primary);
+  outline-offset: 2px;
+}
+
+/* Fallback for browsers without focus-visible */
+:root *:focus,
 .dark-mode *:focus {
   outline: 2px solid var(--accent-primary);
   outline-offset: 2px;
