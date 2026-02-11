@@ -3,7 +3,7 @@ import ReactGA from 'react-ga4';
 
 const Analytics = () => {
     useEffect(() => {
-        const measurementId = process.env.REACT_APP_GA_MEASUREMENT_ID;
+        const measurementId = import.meta.env.REACT_APP_GA_MEASUREMENT_ID;
         if (!measurementId) {
             console.warn('Google Analytics Measurement ID is not defined');
             return;
