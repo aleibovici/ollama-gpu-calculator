@@ -11,7 +11,7 @@ function App() {
 
   return (
     <div className="App">
-      <Analytics />
+	  <Analytics/>
       <div style={{ 
         position: 'fixed', 
         top: '20px', 
