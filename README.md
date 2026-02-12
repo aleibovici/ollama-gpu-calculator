@@ -49,18 +49,14 @@ Runs the app in development mode.
 
 ### `bun run test`
 
-Launches the test runner in interactive watch mode.\
-See the section about [running tests](https://facebook.github.io/create-react-app/docs/running-tests) for more information.
+Launches the test runner in interactive watch mode.
 
 ### `bun run build`
 
 Builds the app for production to the `dist` folder.\
 It correctly bundles React in production mode and optimizes the build for the best performance.
 
-The build is minified and the filenames include the hashes.\
-Your app is ready to be deployed!
-
-See the section about [deployment](https://facebook.github.io/create-react-app/docs/deployment) for more information.
+The build is minified and the filenames include the hashes, making it easy to deploy on GitHub Pages.
 
 ## Contributing
 
@@ -68,6 +64,6 @@ Feel free to open issues or submit pull requests if you'd like to contribute to 
 
 ## Learn More
 
-To learn more about Ollama, visit the [official Ollama documentation](https://ollama.ai/docs).
+To learn more about Ollama, visit the [official Ollama documentation](https://ollama.com/docs).
 
-For React documentation, check out the [React documentation](https://reactjs.org/).
+For React documentation, check out the [React documentation](https://react.dev/).
