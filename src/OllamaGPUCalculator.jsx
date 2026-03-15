@@ -730,7 +730,7 @@ const OllamaGPUCalculator = () => {
                 </div>
 
                 <div style={{ marginBottom: '20px' }}>
-                    <label style={{
+                    <label htmlFor="gpu-model-0" style={{
                         display: 'block',
                         marginBottom: '10px',
                         textAlign: 'left',
@@ -752,6 +752,9 @@ const OllamaGPUCalculator = () => {
                             alignItems: 'center' 
                         }}>
                             <select
+                                id={`gpu-model-${index}`}
+                                name={`gpu-model-${index}`}
+                                aria-label={`GPU Model ${index + 1}`}
                                 value={config.gpuModel}
                                 onChange={(e) => updateGpuConfig(index, 'gpuModel', e.target.value)}
                                 style={{
@@ -777,6 +780,9 @@ const OllamaGPUCalculator = () => {
                                 ))}
                             </select>
                             <select
+                                id={`gpu-count-${index}`}
+                                name={`gpu-count-${index}`}
+                                aria-label={`GPU Count ${index + 1}`}
                                 value={config.count}
                                 onChange={(e) => updateGpuConfig(index, 'count', e.target.value)}
                                 style={{
