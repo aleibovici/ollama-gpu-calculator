@@ -14,17 +14,17 @@ const getSystemRAMMultiplier = (quantBits) => {
 
 const unsortedGpuSpecs = {
     // GPU specifications with TFLOPS values in FP16/mixed precision and TDP in watts
-    'h100': { name: 'H100', vram: 80, generation: 'Hopper', tflops: 1979, tdp: 700 },  // Correct: 700W SXM
+    'h100': { name: 'H100', vram: 80, generation: 'Hopper', tflops: 989, tdp: 700 },  // 989 TFLOPS FP16 Tensor Core dense (no sparsity), consistent with A100 basis; 700W SXM
     'a100-80gb': { name: 'A100 80GB', vram: 80, generation: 'Ampere', tflops: 312, tdp: 400 },  // Correct: 400W SXM
     'a100-40gb': { name: 'A100 40GB', vram: 40, generation: 'Ampere', tflops: 312, tdp: 400 },  // Correct: 400W SXM
     'l40s': { name: 'L40S', vram: 48, generation: 'Ada Lovelace', tflops: 733, tdp: 350 },  // 48GB GDDR6, 733 TFLOPS FP16, 350W
-    'l4': { name: 'L4', vram: 24, generation: 'Ada Lovelace', tflops: 242, tdp: 72 },  // 24GB GDDR6, 242 TFLOPS FP16, 72W
+    'l4': { name: 'L4', vram: 24, generation: 'Ada Lovelace', tflops: 121.2, tdp: 72 },  // 121.2 TFLOPS FP16 Tensor Core dense (no sparsity, consistent with A100/L40S); 72W
 	'm10': { name: 'M10', vram: 32, generation: 'Maxwell', tflops: 5.56, tdp: 225 }, // estimation since hardware doesn't support FP16 natively
     'a40': { name: 'A40', vram: 48, generation: 'Ampere', tflops: 149.8, tdp: 300 },  // Correct: 300W
     'v100-32gb': { name: 'V100 32GB', vram: 32, generation: 'Volta', tflops: 125, tdp: 300 },  // Correct: 300W SXM2
     'v100-16gb': { name: 'V100 16GB', vram: 16, generation: 'Volta', tflops: 125, tdp: 300 },  // Correct: 300W SXM2
     'rtx4090': { name: 'RTX 4090', vram: 24, generation: 'Ada Lovelace', tflops: 82.6, tdp: 450 },  // Correct: 450W
-    'rtx4080': { name: 'RTX 4080', vram: 16, generation: 'Ada Lovelace', tflops: 65, tdp: 320 },  // Correct: 320W
+    'rtx4080': { name: 'RTX 4080', vram: 16, generation: 'Ada Lovelace', tflops: 48.7, tdp: 320 },  // 48.7 TFLOPS FP32 (corrected from 65 which matched neither FP32 nor FP16 TC); 320W
     'rtx4070super': { name: 'RTX 4070 Super', vram: 12, generation: 'Ada Lovelace', tflops: 35.48, tdp: 220 },  // Correct: 220W
     'rtx3090ti': { name: 'RTX 3090 Ti', vram: 24, generation: 'Ampere', tflops: 40, tdp: 450 },  // Correct: 450W
     'rtx3090': { name: 'RTX 3090', vram: 24, generation: 'Ampere', tflops: 35.6, tdp: 350 },  // Correct: 350W
@@ -39,18 +39,18 @@ const unsortedGpuSpecs = {
     'gtx1080ti': { name: 'GTX 1080 Ti', vram: 11, generation: 'Pascal', tflops: 11.3, tdp: 250 },  // Correct: 250W
     'gtx1070ti': { name: 'GTX 1070 Ti', vram: 8, generation: 'Pascal', tflops: 8.1, tdp: 180 },  // Correct: 180W
     'teslap40': { name: 'Tesla P40', vram: 24, generation: 'Pascal', tflops: 12, tdp: 250 },  // Correct: 250W
-    'teslap100': { name: 'Tesla P100', vram: 16, generation: 'Pascal', tflops: 9.3, tdp: 250 },  // Correct: 250W PCIe
+    'teslap100': { name: 'Tesla P100', vram: 16, generation: 'Pascal', tflops: 18.7, tdp: 250 },  // 18.7 TFLOPS FP16 PCIe (P100 has native FP16 hardware; 9.3 was FP32); 250W
     'gtx1070': { name: 'GTX 1070', vram: 8, generation: 'Pascal', tflops: 6.5, tdp: 150 },  // Correct: 150W
     'gtx1060': { name: 'GTX 1060', vram: 6, generation: 'Pascal', tflops: 4.4, tdp: 120 },  // Correct: 120W
-    'm4': { name: 'Apple M4', vram: 16, generation: 'Apple Silicon', tflops: 4.6, tdp: 30 },  // Estimated: Not released yet
-    'm3-max': { name: 'Apple M3 Max', vram: 40, generation: 'Apple Silicon', tflops: 4.5, tdp: 92 },  // Updated: ~92W max package power
-    'm3-pro': { name: 'Apple M3 Pro', vram: 18, generation: 'Apple Silicon', tflops: 4.3, tdp: 67 },  // Updated: ~67W max package power
-    'm3': { name: 'Apple M3', vram: 8, generation: 'Apple Silicon', tflops: 4.1, tdp: 45 },  // Updated: ~45W max package power
-    'rx7900xtx': { name: 'Radeon RX 7900 XTX', vram: 24, generation: 'RDNA3', tflops: 61, tdp: 355 },  // Correct: 355W
-    'rx7900xt': { name: 'Radeon RX 7900 XT', vram: 20, generation: 'RDNA3', tflops: 52, tdp: 315 },  // Correct: 315W
-    'rx7900gre': { name: 'Radeon RX 7900 GRE', vram: 16, generation: 'RDNA3', tflops: 46, tdp: 260 },  // Correct: 260W
-    'rx7800xt': { name: 'Radeon RX 7800 XT', vram: 16, generation: 'RDNA3', tflops: 37, tdp: 263 },  // Correct: 263W
-    'rx7700xt': { name: 'Radeon RX 7700 XT', vram: 12, generation: 'RDNA3', tflops: 35, tdp: 245 },  // Correct: 245W
+    'm4': { name: 'Apple M4', vram: 16, generation: 'Apple Silicon', tflops: 4.6, tdp: 30 },  // Released Nov 2024; 10-core GPU ~3.97 TFLOPS FP32, ~30W
+    'm3-max': { name: 'Apple M3 Max', vram: 40, generation: 'Apple Silicon', tflops: 14.2, tdp: 92 },  // 40-core GPU @ ~1.4 GHz, ~14.2 TFLOPS FP32; ~92W max package power
+    'm3-pro': { name: 'Apple M3 Pro', vram: 18, generation: 'Apple Silicon', tflops: 6.4, tdp: 67 },  // 18-core GPU @ ~1.4 GHz, ~6.4 TFLOPS FP32; ~67W max package power
+    'm3': { name: 'Apple M3', vram: 8, generation: 'Apple Silicon', tflops: 3.6, tdp: 45 },  // 10-core GPU @ ~1.4 GHz, ~3.6 TFLOPS FP32; ~45W max package power
+    'rx7900xtx': { name: 'Radeon RX 7900 XTX', vram: 24, generation: 'RDNA3', tflops: 123, tdp: 355 },  // 123 TFLOPS FP16 Matrix (WMMA, confirmed via RDNA3 AI accelerators, consistent with RDNA4); 355W
+    'rx7900xt': { name: 'Radeon RX 7900 XT', vram: 20, generation: 'RDNA3', tflops: 104, tdp: 315 },  // 104 TFLOPS FP16 Matrix (2× FP32, RDNA3 WMMA); 315W
+    'rx7900gre': { name: 'Radeon RX 7900 GRE', vram: 16, generation: 'RDNA3', tflops: 92, tdp: 260 },  // 92 TFLOPS FP16 Matrix (2× FP32, RDNA3 WMMA); 260W
+    'rx7800xt': { name: 'Radeon RX 7800 XT', vram: 16, generation: 'RDNA3', tflops: 74, tdp: 263 },  // 74 TFLOPS FP16 Matrix (2× FP32, RDNA3 WMMA); 263W
+    'rx7700xt': { name: 'Radeon RX 7700 XT', vram: 12, generation: 'RDNA3', tflops: 70, tdp: 245 },  // 70 TFLOPS FP16 Matrix (2× FP32, RDNA3 WMMA); 245W
 	'rx9070xt': { name: 'Radeon RX 9070 XT', vram: 16, generation: 'RDNA4', tflops: 195, tdp: 304 },  // taken from AMD.com spec sheet, TFLOPS from peak half-precision (FP16 Matrix) performance
 	'rx9070': { name: 'Radeon RX 9070', vram: 16, generation: 'RDNA4', tflops: 145, tdp: 220 },  
 	'rx9060xt1': { name: 'Radeon RX 9060 XT', vram: 16, generation: 'RDNA4', tflops: 103, tdp: 160 },  
@@ -174,7 +174,7 @@ const calculateTokensPerSecond = (paramCount, numGPUs, gpuModel, quantization) =
         totalTPS += baseTPS * 0.9 * quantizationFactor;
     }
     
-    return Math.round(Math.min(totalTPS, 200));
+    return Math.round(Math.min(totalTPS, 1000));
 };
 
 const calculatePowerConsumption = (gpuConfigs, paramCount, quantization) => {
@@ -361,7 +361,7 @@ const OllamaGPUCalculator = () => {
                 isCompatible: ramCalc.effectiveVRAM >= ramCalc.totalGPURAM,
                 isBorderline: ramCalc.vramMargin > 0 && ramCalc.vramMargin < 2,
                 gpuConfig: gpuConfigString,
-                tokensPerSecond: Math.round(Math.min(totalTPS, 200)),
+                tokensPerSecond: Math.round(Math.min(totalTPS, 1000)),
                 warnings: warnings,
                 powerConsumption: powerCalc  // Add power consumption to results
             });
@@ -1099,10 +1099,10 @@ const OllamaGPUCalculator = () => {
                     <li>H100, A100, A40, and V100 GPUs are designed for data centers and may not be available for personal use</li>
                     <li>Tokens per second estimates are approximate and may vary based on specific model architecture and implementation</li>
                     <li>Minimum system requirements: 8GB RAM, 10GB storage space</li>
-                    <li>Apple Silicon devices will utilize Neural Engine for additional performance</li>
+                    <li>Apple Silicon devices use Metal GPU acceleration (via llama.cpp) for inference; the Neural Engine is not used</li>
                     <li>Local execution ensures privacy and reduced latency</li>
                     <li>Performance may vary based on model quantization and system capabilities</li>
-                    <li>Supported OS: Linux (Ubuntu 18.04+), macOS (11+), Windows (via WSL2)</li>
+                    <li>Supported OS: Linux (Ubuntu 18.04+), macOS (11+), Windows (native GPU support; WSL2 not required)</li>
                     <li>CPU: 4+ cores recommended, 8+ cores for 13B+ models</li>
                     <li>AMD GPUs are supported on Windows and Linux with ROCm</li>
                     <li>Models can be run in both 'generate' and 'embedding' modes if supported</li>
