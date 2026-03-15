@@ -580,10 +580,10 @@ const OllamaGPUCalculator = () => {
     };
 
     return (
-        <div style={{ 
-            maxWidth: '600px', 
-            margin: '0 auto', 
-            padding: '20px', 
+        <main style={{
+            maxWidth: '600px',
+            margin: '0 auto',
+            padding: '20px',
             fontFamily: 'Arial, sans-serif',
             backgroundColor: 'var(--bg-primary)',
             color: 'var(--text-primary)',
@@ -1113,7 +1113,7 @@ const OllamaGPUCalculator = () => {
                     <li>Multi-GPU setups include additional power overhead for inter-GPU communication</li>
                 </ul>
             </div>
-        </div>
+        </main>
     );
 };
 
