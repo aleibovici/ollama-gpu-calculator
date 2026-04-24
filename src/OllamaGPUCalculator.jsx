@@ -17,6 +17,7 @@ const unsortedGpuSpecs = {
     'h100': { name: 'H100', vram: 80, generation: 'Hopper', tflops: 989, tdp: 700 },  // 989 TFLOPS FP16 Tensor Core dense (no sparsity), consistent with A100 basis; 700W SXM
     'a100-80gb': { name: 'A100 80GB', vram: 80, generation: 'Ampere', tflops: 312, tdp: 400 },  // Correct: 400W SXM
     'a100-40gb': { name: 'A100 40GB', vram: 40, generation: 'Ampere', tflops: 312, tdp: 400 },  // Correct: 400W SXM
+    'a2': { name: 'A2', vram: 16, generation: 'Ampere', tflops: 15.6, tdp: 60 },  // GA107, 16GB GDDR6, 15.6 TFLOPS FP16 Tensor Core dense (no sparsity); 60W PCIe
     'l40s': { name: 'L40S', vram: 48, generation: 'Ada Lovelace', tflops: 733, tdp: 350 },  // 48GB GDDR6, 733 TFLOPS FP16, 350W
     'l4': { name: 'L4', vram: 24, generation: 'Ada Lovelace', tflops: 121.2, tdp: 72 },  // 121.2 TFLOPS FP16 Tensor Core dense (no sparsity, consistent with A100/L40S); 72W
 	'm10': { name: 'M10', vram: 32, generation: 'Maxwell', tflops: 5.56, tdp: 225 }, // estimation since hardware doesn't support FP16 natively
