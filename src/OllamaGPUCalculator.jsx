@@ -62,41 +62,7 @@ const OllamaGPUCalculator = () => {
                 gpuConfigs
             );
 
-            // Calculate power consumption
             const powerCalc = calculatePowerConsumption(gpuConfigs, paramCount, quantization);
-
-            // Generate warnings based on configuration
-            let warnings = [];
-            
-            // Context length warnings
-            if (contextLength > 32768 && quantization === '16') {
-                warnings.push('Long context with FP16 may require significant VRAM');
-            }
-            
-            // Multi-GPU warnings
-            if (gpuConfigs.length > 2) {
-                warnings.push('Multi-GPU scaling efficiency decreases with more than 2 GPUs');
-            }
-            
-            // Architecture-specific warnings
-            gpuConfigs.forEach(config => {
-                if (config.gpuModel && gpuSpecs[config.gpuModel].generation === 'Pascal') {
-                    warnings.push('Pascal architecture may have limited support for newer optimizations');
-                }
-            });
-
-            // Parameter size warnings
-            if (paramCount > 13) {
-                warnings.push('Models larger than 13B parameters may require multiple GPUs for optimal performance');
-            }
-
-            // Mixed architecture warnings
-            const generations = new Set(gpuConfigs.map(config => 
-                config.gpuModel ? gpuSpecs[config.gpuModel].generation : null
-            ).filter(Boolean));
-            if (generations.size > 1) {
-                warnings.push('Mixed GPU generations may result in reduced performance');
-            }
 
             const totalTPS = calculateTokensPerSecond(
                 paramCount,
@@ -123,8 +89,7 @@ const OllamaGPUCalculator = () => {
                 isBorderline: ramCalc.vramMargin > 0 && ramCalc.vramMargin < 2,
                 gpuConfig: gpuConfigString,
                 tokensPerSecond: totalTPS,
-                warnings: warnings,
-                powerConsumption: powerCalc  // Add power consumption to results
+                powerConsumption: powerCalc,
             });
         } catch (error) {
             console.error('Calculation error:', error);
@@ -154,29 +119,54 @@ const OllamaGPUCalculator = () => {
 
     const getCompatibilityMessage = () => {
         if (!results) return null;
-        
-        let warnings = [];
-        
+
+        const paramCount = parseFloat(parameters);
+        const activeConfigs = gpuConfigs.filter(c => c.gpuModel && gpuSpecs[c.gpuModel]);
+        const totalGpuCount = activeConfigs.reduce((n, c) => {
+            const count = parseInt(c.count, 10);
+            return Number.isFinite(count) && count > 0 ? n + count : n;
+        }, 0);
+        const generations = new Set(activeConfigs.map(c => gpuSpecs[c.gpuModel].generation));
+
+        const warnings = [];
+
         if (results.minimumSystemRAM) {
             const memKind = results.unifiedMemory ? 'unified memory' : 'RAM';
             warnings.push(`Recommended minimum ${results.minimumSystemRAM}GB ${memKind}`);
         }
-        
-        // Add OS-specific warnings
-        if (gpuConfigs.some(config => config.gpuModel?.includes('rx'))) {
+
+        if (Number.isFinite(paramCount) && paramCount > 13) {
+            warnings.push('Models larger than 13B parameters may require multiple GPUs for optimal performance');
+        }
+
+        if (totalGpuCount > 2) {
+            warnings.push('Multi-GPU scaling efficiency decreases with more than 2 GPUs');
+        }
+
+        if (generations.has('Pascal')) {
+            warnings.push('Pascal architecture may have limited support for newer optimizations');
+        }
+
+        if (generations.size > 1) {
+            warnings.push('Mixed GPU generations may result in reduced performance');
+        }
+
+        if (activeConfigs.some(c => gpuSpecs[c.gpuModel].generation === 'RDNA3'
+            || gpuSpecs[c.gpuModel].generation === 'RDNA4')) {
             warnings.push('AMD GPUs are supported on Windows and Linux with ROCm');
         }
 
-        // Add quantization-specific warnings
         if (quantization === '4') {
             warnings.push('4-bit quantization provides fastest inference but may impact model accuracy');
         } else if (quantization === '8') {
             warnings.push('8-bit quantization offers good balance of speed and accuracy');
         }
 
-        // Add context length warnings
         if (contextLength > 32768) {
             warnings.push('Extended context length requires significantly more VRAM and may impact performance');
+            if (quantization === '16') {
+                warnings.push('Long context with FP16 may require significant VRAM');
+            }
         }
 
         const baseStyles = {

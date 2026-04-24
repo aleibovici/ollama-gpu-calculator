@@ -206,8 +206,6 @@ export function calculateRAMRequirements(paramCount, quantBits, contextLength, g
         vramMargin,
         minimumSystemRAM,
         unifiedMemory: unified,
-        storageRequired: 10 + baseModelSizeGB,
-        recommendedCores: paramCount > 13 ? 8 : 4,
     };
 }
 
