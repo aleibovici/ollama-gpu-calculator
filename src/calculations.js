@@ -56,11 +56,11 @@ const unsortedGpuSpecs = {
     'gtx1070':    { name: 'GTX 1070',    vram: 8,  generation: 'Pascal', tflops: 6.5,  bandwidth: 256, tdp: 150 },
     'gtx1060':    { name: 'GTX 1060',    vram: 6,  generation: 'Pascal', tflops: 4.4,  bandwidth: 192, tdp: 120 },
 
-    // Apple Silicon (unified memory: the listed "VRAM" is the shared pool, so bandwidth is LPDDR).
-    'm4':     { name: 'Apple M4',     vram: 16, generation: 'Apple Silicon', tflops: 4.6,  bandwidth: 120, tdp: 30 },
-    'm3-max': { name: 'Apple M3 Max', vram: 40, generation: 'Apple Silicon', tflops: 14.2, bandwidth: 400, tdp: 92 },
-    'm3-pro': { name: 'Apple M3 Pro', vram: 18, generation: 'Apple Silicon', tflops: 6.4,  bandwidth: 150, tdp: 67 },
-    'm3':     { name: 'Apple M3',     vram: 8,  generation: 'Apple Silicon', tflops: 3.6,  bandwidth: 100, tdp: 45 },
+    // Apple Silicon — unifiedMemory: true means "VRAM" and system RAM are the same pool.
+    'm4':     { name: 'Apple M4',     vram: 16, generation: 'Apple Silicon', tflops: 4.6,  bandwidth: 120, tdp: 30, unifiedMemory: true },
+    'm3-max': { name: 'Apple M3 Max', vram: 40, generation: 'Apple Silicon', tflops: 14.2, bandwidth: 400, tdp: 92, unifiedMemory: true },
+    'm3-pro': { name: 'Apple M3 Pro', vram: 18, generation: 'Apple Silicon', tflops: 6.4,  bandwidth: 150, tdp: 67, unifiedMemory: true },
+    'm3':     { name: 'Apple M3',     vram: 8,  generation: 'Apple Silicon', tflops: 3.6,  bandwidth: 100, tdp: 45, unifiedMemory: true },
 
     // AMD RDNA3/4 consumer — tflops are FP16 Matrix (WMMA) dense, the TC-equivalent.
     'rx7900xtx':   { name: 'Radeon RX 7900 XTX',    vram: 24, generation: 'RDNA3', tflops: 123, bandwidth: 960, tdp: 355 },
@@ -135,11 +135,28 @@ function getSystemRAMMultiplier(quantBits) {
     }
 }
 
-function getMinimumRAM(paramCount) {
-    if (paramCount <= 3) return 8;
-    if (paramCount <= 7) return 16;
-    if (paramCount <= 13) return 32;
-    return 64;
+// Round up to the nearest power of 2 (typical RAM sizes: 8, 16, 32, 64, 128, 256).
+// Floor at 8 GB — that's the practical minimum for any Ollama setup.
+function roundUpToRAMSize(gb) {
+    const floor = 8;
+    if (gb <= floor) return floor;
+    return Math.pow(2, Math.ceil(Math.log2(gb)));
+}
+
+// Returns true if every active (gpuModel set, count > 0) config is unified
+// memory. Treats the setup as discrete otherwise — mixing unified with
+// discrete GPUs is physically nonsensical but we don't want to silently merge
+// their memory pools.
+function isUnifiedMemorySetup(gpuConfigs) {
+    let sawActive = false;
+    for (const config of gpuConfigs) {
+        if (!config.gpuModel || !gpuSpecs[config.gpuModel]) continue;
+        const n = parseInt(config.count, 10);
+        if (!Number.isFinite(n) || n <= 0) continue;
+        sawActive = true;
+        if (!gpuSpecs[config.gpuModel].unifiedMemory) return false;
+    }
+    return sawActive;
 }
 
 export function calculateRAMRequirements(paramCount, quantBits, contextLength, gpuConfigs) {
@@ -148,7 +165,13 @@ export function calculateRAMRequirements(paramCount, quantBits, contextLength, g
     const gpuOverhead = baseModelSizeGB * 0.1;
     const totalGPURAM = baseModelSizeGB + kvCacheSize + gpuOverhead;
 
-    const totalSystemRAM = totalGPURAM * getSystemRAMMultiplier(quantBits);
+    // On unified-memory systems (Apple Silicon), the GPU VRAM and system RAM
+    // are the same physical pool. Reporting systemRAM = gpuRAM × 1.5 on top of
+    // the VRAM requirement double-counts the same memory.
+    const unified = isUnifiedMemorySetup(gpuConfigs);
+    const totalSystemRAM = unified
+        ? totalGPURAM
+        : totalGPURAM * getSystemRAMMultiplier(quantBits);
 
     let totalAvailableVRAM = 0;
     let totalGpuCount = 0;
@@ -168,6 +191,11 @@ export function calculateRAMRequirements(paramCount, quantBits, contextLength, g
     // isCompatible check downstream.
     const vramMargin = effectiveVRAM - totalGPURAM;
 
+    // Derive the "recommended minimum RAM" from the actual computed requirement
+    // rather than a fixed FP16-assuming table. A Q4 7B genuinely needs less
+    // system RAM than an FP16 7B.
+    const minimumSystemRAM = roundUpToRAMSize(totalSystemRAM);
+
     return {
         baseModelSizeGB,
         kvCacheSize,
@@ -176,7 +204,8 @@ export function calculateRAMRequirements(paramCount, quantBits, contextLength, g
         totalAvailableVRAM,
         effectiveVRAM,
         vramMargin,
-        minimumSystemRAM: getMinimumRAM(paramCount),
+        minimumSystemRAM,
+        unifiedMemory: unified,
         storageRequired: 10 + baseModelSizeGB,
         recommendedCores: paramCount > 13 ? 8 : 4,
     };
@@ -254,9 +283,9 @@ export function calculatePowerConsumption(gpuConfigs, paramCount, quantization) 
     };
 
     const utilizationFactor = getUtilizationFactor(quantization);
-    let systemOverhead = getBaseSystemOverhead(paramCount);
-    let totalPower = 0;
     const powerDetails = [];
+    let basePower = 0;
+    let totalGpuCount = 0;
 
     gpuConfigs.forEach(config => {
         if (!config.gpuModel || !gpuSpecs[config.gpuModel]) return;
@@ -265,18 +294,28 @@ export function calculatePowerConsumption(gpuConfigs, paramCount, quantization) 
         if (!Number.isFinite(numGPUs) || numGPUs <= 0) return;
 
         const gpuPower = Math.round(gpu.tdp * utilizationFactor);
-        const multiGpuOverhead = numGPUs > 1 ? (numGPUs - 1) * 0.1 * gpuPower : 0;
-        const totalGpuPower = Math.round(gpuPower * numGPUs + multiGpuOverhead);
-
-        totalPower += totalGpuPower;
-        powerDetails.push({ name: gpu.name, count: numGPUs, power: totalGpuPower, baseWatts: gpuPower });
-        systemOverhead += (numGPUs - 1) * 25;
+        const rowPower = gpuPower * numGPUs;
+        basePower += rowPower;
+        totalGpuCount += numGPUs;
+        powerDetails.push({
+            name: gpu.name,
+            count: numGPUs,
+            power: rowPower,
+            baseWatts: gpuPower,
+        });
     });
 
-    totalPower += systemOverhead;
+    // Inter-GPU and system overhead is based on TOTAL GPU count across all
+    // config rows, not per-row. 2 GPUs is 2 GPUs whether they're one row with
+    // count=2 or two rows with count=1.
+    const extraGpus = Math.max(0, totalGpuCount - 1);
+    const multiGpuPowerOverhead = Math.round(
+        basePower * 0.1 * (extraGpus / Math.max(1, totalGpuCount))
+    );
+    const systemOverhead = getBaseSystemOverhead(paramCount) + extraGpus * 25 + multiGpuPowerOverhead;
 
     return {
-        totalPower: Math.round(totalPower),
+        totalPower: Math.round(basePower + systemOverhead),
         powerDetails,
         systemOverhead,
         utilizationFactor,

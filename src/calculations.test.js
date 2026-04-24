@@ -270,6 +270,115 @@ describe('calculatePowerConsumption', () => {
     });
 });
 
+describe('Apple Silicon unified memory', () => {
+    it('does not double-count memory: systemRAM equals totalGPURAM', () => {
+        const r = calculateRAMRequirements(7, 16, 4096, [{ gpuModel: 'm3-max', count: '1' }]);
+        expect(r.unifiedMemory).toBe(true);
+        expect(r.totalSystemRAM).toBeCloseTo(r.totalGPURAM, 5);
+    });
+
+    it('discrete GPU still gets the 1.5× FP16 multiplier', () => {
+        const r = calculateRAMRequirements(7, 16, 4096, [{ gpuModel: 'rtx4090', count: '1' }]);
+        expect(r.unifiedMemory).toBe(false);
+        expect(r.totalSystemRAM).toBeCloseTo(r.totalGPURAM * 1.5, 5);
+    });
+
+    it('mixed unified + discrete falls back to discrete (safe default)', () => {
+        const r = calculateRAMRequirements(7, 16, 4096, [
+            { gpuModel: 'm3-max', count: '1' },
+            { gpuModel: 'rtx4090', count: '1' },
+        ]);
+        expect(r.unifiedMemory).toBe(false);
+    });
+
+    it('empty gpuConfigs is not unified (unified flag requires at least one active unified GPU)', () => {
+        const r = calculateRAMRequirements(7, 16, 4096, []);
+        expect(r.unifiedMemory).toBe(false);
+    });
+
+    it('every Apple Silicon GPU spec is flagged unifiedMemory', () => {
+        for (const [key, gpu] of Object.entries(gpuSpecs)) {
+            if (gpu.generation === 'Apple Silicon') {
+                expect(gpu.unifiedMemory, `${key} should be unifiedMemory`).toBe(true);
+            }
+        }
+    });
+
+    it('no discrete GPU is flagged unifiedMemory', () => {
+        for (const [key, gpu] of Object.entries(gpuSpecs)) {
+            if (gpu.generation !== 'Apple Silicon') {
+                expect(gpu.unifiedMemory, `${key} should NOT be unifiedMemory`).toBeFalsy();
+            }
+        }
+    });
+});
+
+describe('quantization-aware minimumSystemRAM', () => {
+    it('FP16 7B rounds up to 32 GB', () => {
+        // 7B FP16 totalSystemRAM ≈ 15 * 1.5 = ~22 GB → rounds to 32.
+        const r = calculateRAMRequirements(7, 16, 4096, [{ gpuModel: 'rtx4090', count: '1' }]);
+        expect(r.minimumSystemRAM).toBe(32);
+    });
+
+    it('Q4 7B rounds down to a lower tier than FP16 7B', () => {
+        const fp16 = calculateRAMRequirements(7, 16, 4096, [{ gpuModel: 'rtx4090', count: '1' }]);
+        const q4 = calculateRAMRequirements(7, 4, 4096, [{ gpuModel: 'rtx4090', count: '1' }]);
+        // Q4 weights are 1/4 of FP16, so minimum should drop by at least one power-of-2 tier.
+        expect(q4.minimumSystemRAM).toBeLessThan(fp16.minimumSystemRAM);
+    });
+
+    it('tiny models floor at 8 GB', () => {
+        const r = calculateRAMRequirements(0.5, 4, 2048, [{ gpuModel: 'rtx4090', count: '1' }]);
+        expect(r.minimumSystemRAM).toBe(8);
+    });
+
+    it('always returns a power of 2', () => {
+        const samples = [
+            [1, 16], [3, 16], [7, 16], [7, 4], [13, 16], [13, 4], [70, 16], [70, 4],
+        ];
+        for (const [p, q] of samples) {
+            const r = calculateRAMRequirements(p, q, 4096, [{ gpuModel: 'rtx4090', count: '1' }]);
+            const log2 = Math.log2(r.minimumSystemRAM);
+            expect(log2, `param=${p} quant=${q} min=${r.minimumSystemRAM}`).toBe(Math.floor(log2));
+        }
+    });
+});
+
+describe('symmetric multi-GPU power overhead', () => {
+    // Same physical setup (2x RTX 4090), two different ways of configuring it.
+    const oneRowTwoGpus = [{ gpuModel: 'rtx4090', count: '2' }];
+    const twoRowsOneGpuEach = [
+        { gpuModel: 'rtx4090', count: '1' },
+        { gpuModel: 'rtx4090', count: '1' },
+    ];
+
+    it('produces the same total power for equivalent setups', () => {
+        const a = calculatePowerConsumption(oneRowTwoGpus, 7, '16');
+        const b = calculatePowerConsumption(twoRowsOneGpuEach, 7, '16');
+        expect(a.totalPower).toBe(b.totalPower);
+    });
+
+    it('produces the same systemOverhead for equivalent setups', () => {
+        const a = calculatePowerConsumption(oneRowTwoGpus, 7, '16');
+        const b = calculatePowerConsumption(twoRowsOneGpuEach, 7, '16');
+        expect(a.systemOverhead).toBe(b.systemOverhead);
+    });
+
+    it('single GPU has no multi-GPU overhead', () => {
+        const one = calculatePowerConsumption([{ gpuModel: 'rtx4090', count: '1' }], 7, '16');
+        // systemOverhead for 7B is 100 W base + 0 extra GPUs + 0 inter-GPU overhead.
+        expect(one.systemOverhead).toBe(100);
+    });
+
+    it('2 GPUs add exactly one increment of inter-GPU overhead', () => {
+        const one = calculatePowerConsumption([{ gpuModel: 'rtx4090', count: '1' }], 7, '16');
+        const two = calculatePowerConsumption([{ gpuModel: 'rtx4090', count: '2' }], 7, '16');
+        // Difference = rowPower (extra GPU) + 25 (per-extra) + inter-GPU power share.
+        // Just assert the structure: 2-GPU overhead > 1-GPU overhead by at least +25.
+        expect(two.systemOverhead).toBeGreaterThanOrEqual(one.systemOverhead + 25);
+    });
+});
+
 describe('gpuSpecs', () => {
     it('every GPU has a bandwidth field', () => {
         for (const [key, gpu] of Object.entries(gpuSpecs)) {

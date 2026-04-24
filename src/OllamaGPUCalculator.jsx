@@ -157,17 +157,9 @@ const OllamaGPUCalculator = () => {
         
         let warnings = [];
         
-        const paramNum = parseFloat(parameters);
-        if (!Number.isNaN(paramNum)) {
-            if (paramNum <= 3) {
-                warnings.push('3B model: Minimum 8GB RAM recommended');
-            } else if (paramNum <= 7) {
-                warnings.push('7B model: Minimum 16GB RAM recommended');
-            } else if (paramNum <= 13) {
-                warnings.push('13B model: Minimum 32GB RAM recommended');
-            } else {
-                warnings.push('70B model: Minimum 64GB RAM recommended');
-            }
+        if (results.minimumSystemRAM) {
+            const memKind = results.unifiedMemory ? 'unified memory' : 'RAM';
+            warnings.push(`Recommended minimum ${results.minimumSystemRAM}GB ${memKind}`);
         }
         
         // Add OS-specific warnings
@@ -777,13 +769,13 @@ const OllamaGPUCalculator = () => {
                                 display: 'block',
                                 color: 'var(--text-secondary)'
                             }}>
-                                Required System RAM:
+                                {results.unifiedMemory ? 'Required Unified Memory:' : 'Required System RAM:'}
                             </label>
-                            <p style={{ 
-                                fontSize: '24px', 
-                                fontWeight: 'bold', 
-                                color: 'var(--accent-tertiary)', 
-                                margin: '0 0 10px 0' 
+                            <p style={{
+                                fontSize: '24px',
+                                fontWeight: 'bold',
+                                color: 'var(--accent-tertiary)',
+                                margin: '0 0 10px 0'
                             }}>
                                 {results.systemRAM} GB
                             </p>
