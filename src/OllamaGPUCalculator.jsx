@@ -14,15 +14,15 @@ const QUANT_OPTIONS = [
 const CONTEXT_OPTIONS = [4096, 8192, 16384, 32768, 65536, 131072];
 
 const NOTES = [
-    'Multi-GPU setups may run slightly below theoretical maximum efficiency.',
+    'Multi-GPU on consumer PCIe scales sub-linearly — expect roughly 0.7–0.75× per added GPU as cross-device traffic eats into throughput.',
     'A small portion of VRAM is reserved for system operations and driver overhead.',
     'Real-world performance depends on concurrent workloads and thermal headroom.',
     'Leave roughly 1–2 GB of VRAM margin for stable inference under load.',
-    'Data-center GPUs (H100, A100, A40, V100) are typically not available for personal use.',
+    'Data-center GPUs (H100, A100, B200) are sold to enterprises, not consumers, but are widely available to rent by the hour from cloud providers.',
     'Tokens/sec are approximate; actual numbers depend on model architecture and runtime.',
-    'Apple Silicon runs Metal GPU acceleration via llama.cpp — the Neural Engine is not used.',
+    'On Apple Silicon, Ollama now runs on MLX (preview from 0.19) and uses the M5 GPU Neural Accelerators where present; the separate Neural Engine block is still not used for LLM inference.',
     'Lower quantization (INT4/INT8) trades quality for memory and speed on limited hardware.',
-    'AMD GPUs are supported on Windows and Linux through ROCm.',
+    'AMD GPUs run via ROCm on Linux and on recent Radeon RX / PRO cards on Windows; older or APU-class AMD GPUs on Windows fall back to the Vulkan backend.',
     'Power figures account for utilization patterns during LLM inference, not peak TDP.',
 ];
 
