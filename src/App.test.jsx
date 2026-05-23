@@ -1,8 +1,8 @@
 import { render, screen } from '@testing-library/react';
 import App from './App.jsx';
 
-test('renders Ollama GPU Compatibility Calculator', () => {
+test('renders Ollama GPU compatibility instrument header', () => {
   render(<App />);
-  const heading = screen.getByText(/Ollama GPU Compatibility Calculator/i);
-  expect(heading).toBeInTheDocument();
+  expect(screen.getByText(/Ollama · GPU Compatibility Instrument/i)).toBeInTheDocument();
+  expect(screen.getByText(/Ollama GPU Compatibility Calculator/i)).toBeInTheDocument();
 });
