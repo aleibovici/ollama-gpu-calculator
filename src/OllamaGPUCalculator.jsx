@@ -1,290 +1,53 @@
-import React, { useState, useEffect, useCallback } from 'react';
+import React, { useState, useMemo, useEffect } from 'react';
 import ReactGA from 'react-ga4';
-import {
-    gpuSpecs,
-    calculateRAMRequirements,
-    calculateTokensPerSecond,
-    calculatePowerConsumption,
-} from './calculations';
+import { gpuSpecs } from './data/gpuSpecs';
+import { runCalculator, formatGB } from './calculatorOutput';
+import CompatibilityBanner from './components/CompatibilityBanner';
 
 const OllamaGPUCalculator = () => {
     const [parameters, setParameters] = useState('');
     const [quantization, setQuantization] = useState('16');
     const [contextLength, setContextLength] = useState(4096);
     const [gpuConfigs, setGpuConfigs] = useState([{ gpuModel: '', count: '1' }]);
-    const [results, setResults] = useState(null);
-    const [validationErrors, setValidationErrors] = useState({});
 
-    const calculateOllamaRAM = useCallback(() => {
-        setValidationErrors({});
-
-        const paramCount = parseFloat(parameters);
-        const paramsValid = parameters.trim() !== '' && !Number.isNaN(paramCount) && paramCount > 0;
-
-        if (!paramsValid) {
-            if (parameters.trim() !== '') {
-                setValidationErrors({ parameters: 'Please enter a valid number greater than 0 (e.g. 7 for 7B)' });
-            }
-            setResults(null);
-            return;
+    const { results, validationErrors, warnings } = useMemo(() => {
+        if (!parameters.trim() && !gpuConfigs.some(config => config.gpuModel)) {
+            return { results: null, validationErrors: {}, warnings: [] };
         }
-
-        if (!gpuConfigs.some(config => config.gpuModel)) {
-            setValidationErrors({ gpu: 'Please select at least one GPU model' });
-            setResults(null);
-            return;
-        }
-
-        const invalidGpuCount = gpuConfigs.some((config) => {
-            const n = parseInt(config.count, 10);
-            return config.gpuModel && (n <= 0 || Number.isNaN(n));
-        });
-        if (invalidGpuCount) {
-            setValidationErrors({ gpuCount: 'Invalid GPU count. Please use 1 or more per slot.' });
-            setResults(null);
-            return;
-        }
-
-        // Track calculation event
-        ReactGA.event({
-            category: 'Calculator',
-            action: 'Calculate',
-            label: 'Mixed GPU Configuration',
-            value: Math.round(paramCount)
-        });
-        const quantBits = parseInt(quantization);
 
         try {
-            const ramCalc = calculateRAMRequirements(
-                paramCount,
-                quantBits,
-                contextLength,
-                gpuConfigs
-            );
-
-            const powerCalc = calculatePowerConsumption(gpuConfigs, paramCount, quantization);
-
-            const totalTPS = calculateTokensPerSecond(
-                paramCount,
-                quantBits,
-                contextLength,
-                gpuConfigs
-            ) || 0;
-
-            // Format GPU configuration string
-            const gpuConfigString = gpuConfigs
-                .filter(config => config.gpuModel)
-                .map(config => `${config.count}x ${gpuSpecs[config.gpuModel].name}`)
-                .join(' + ');
-
-            setResults({
-                ...ramCalc,
-                gpuRAM: ramCalc.totalGPURAM.toFixed(2),
-                systemRAM: ramCalc.totalSystemRAM.toFixed(2),
-                modelSize: ramCalc.baseModelSizeGB.toFixed(2),
-                kvCache: ramCalc.kvCacheSize.toFixed(2),
-                availableVRAM: ramCalc.effectiveVRAM.toFixed(2),
-                vramMargin: ramCalc.vramMargin.toFixed(2),
-                isCompatible: ramCalc.effectiveVRAM >= ramCalc.totalGPURAM,
-                isBorderline: ramCalc.vramMargin > 0 && ramCalc.vramMargin < 2,
-                gpuConfig: gpuConfigString,
-                tokensPerSecond: totalTPS,
-                powerConsumption: powerCalc,
-            });
+            const output = runCalculator({ parameters, quantization, contextLength, gpuConfigs });
+            return {
+                results: output.results,
+                validationErrors: output.errors,
+                warnings: output.warnings,
+            };
         } catch (error) {
             console.error('Calculation error:', error);
-            setValidationErrors({ calculation: 'An error occurred during calculations. Please check your inputs and try again.' });
-            setResults(null);
+            return {
+                results: null,
+                validationErrors: { calculation: 'An error occurred during calculations. Please check your inputs and try again.' },
+                warnings: [],
+            };
         }
     }, [parameters, quantization, contextLength, gpuConfigs]);
 
     useEffect(() => {
-        if (!parameters.trim() && !gpuConfigs.some(config => config.gpuModel)) {
-            setResults(null);
-            setValidationErrors({});
-            return;
-        }
-        calculateOllamaRAM();
-    }, [
-        parameters,
-        quantization,
-        contextLength,
-        gpuConfigs,
-        calculateOllamaRAM
-    ]);
+        if (!results) return;
+
+        const paramCount = parseFloat(parameters);
+        if (Number.isNaN(paramCount) || paramCount <= 0) return;
+
+        ReactGA.event({
+            category: 'Calculator',
+            action: 'Calculate',
+            label: 'Mixed GPU Configuration',
+            value: Math.round(paramCount),
+        });
+    }, [results, parameters]);
 
     const handleSubmit = (e) => {
         e.preventDefault();
-    };
-
-    const getCompatibilityMessage = () => {
-        if (!results) return null;
-
-        const paramCount = parseFloat(parameters);
-        const activeConfigs = gpuConfigs.filter(c => c.gpuModel && gpuSpecs[c.gpuModel]);
-        const totalGpuCount = activeConfigs.reduce((n, c) => {
-            const count = parseInt(c.count, 10);
-            return Number.isFinite(count) && count > 0 ? n + count : n;
-        }, 0);
-        const generations = new Set(activeConfigs.map(c => gpuSpecs[c.gpuModel].generation));
-
-        const warnings = [];
-
-        if (results.minimumSystemRAM) {
-            const memKind = results.unifiedMemory ? 'unified memory' : 'RAM';
-            warnings.push(`Recommended minimum ${results.minimumSystemRAM}GB ${memKind}`);
-        }
-
-        if (Number.isFinite(paramCount) && paramCount > 13) {
-            warnings.push('Models larger than 13B parameters may require multiple GPUs for optimal performance');
-        }
-
-        if (totalGpuCount > 2) {
-            warnings.push('Multi-GPU scaling efficiency decreases with more than 2 GPUs');
-        }
-
-        if (generations.has('Pascal')) {
-            warnings.push('Pascal architecture may have limited support for newer optimizations');
-        }
-
-        if (generations.size > 1) {
-            warnings.push('Mixed GPU generations may result in reduced performance');
-        }
-
-        if (activeConfigs.some(c => gpuSpecs[c.gpuModel].generation === 'RDNA3'
-            || gpuSpecs[c.gpuModel].generation === 'RDNA4')) {
-            warnings.push('AMD GPUs are supported on Windows and Linux with ROCm');
-        }
-
-        if (quantization === '4') {
-            warnings.push('4-bit quantization provides fastest inference but may impact model accuracy');
-        } else if (quantization === '8') {
-            warnings.push('8-bit quantization offers good balance of speed and accuracy');
-        }
-
-        if (contextLength > 32768) {
-            warnings.push('Extended context length requires significantly more VRAM and may impact performance');
-            if (quantization === '16') {
-                warnings.push('Long context with FP16 may require significant VRAM');
-            }
-        }
-
-        const baseStyles = {
-            textAlign: 'left',
-            borderRadius: '8px',
-            padding: '15px',
-            marginBottom: '15px',
-            border: '1px solid',
-            transition: 'all 0.3s ease'
-        };
-
-        // Add warnings section if there are any
-        const warningsSection = warnings.length > 0 ? (
-            <div style={{ marginTop: '15px' }}>
-                <p style={{ 
-                    fontWeight: 'bold', 
-                    marginBottom: '8px',
-                    color: 'inherit'
-                }}>
-                    Warnings:
-                </p>
-                <ul style={{ 
-                    marginLeft: '20px', 
-                    marginTop: '5px',
-                    color: 'inherit'
-                }}>
-                    {warnings.map((warning, index) => (
-                        <li key={index} style={{ marginBottom: '4px' }}>{warning}</li>
-                    ))}
-                </ul>
-            </div>
-        ) : null;
-
-        if (results.isCompatible && !results.isBorderline) {
-            return (
-                <div style={{ 
-                    ...baseStyles, 
-                    backgroundColor: 'var(--success-bg)', 
-                    borderColor: 'var(--success-border)',
-                    color: 'var(--success-text)'
-                }}>
-                    <h3 style={{ 
-                        color: 'var(--success-text)',
-                        marginTop: '0',
-                        marginBottom: '10px'
-                    }}>
-                        ✅ Compatible Configuration
-                    </h3>
-                    <p style={{ 
-                        margin: '0 0 10px 0',
-                        lineHeight: '1.5'
-                    }}>
-                        Your GPU setup ({results.gpuConfig}) can handle this model with {results.vramMargin}GB VRAM to spare.
-                        Estimated performance: {results.tokensPerSecond} tokens/second.
-                    </p>
-                    {warningsSection}
-                </div>
-            );
-        } else if (results.isBorderline) {
-            return (
-                <div style={{ 
-                    ...baseStyles, 
-                    backgroundColor: 'var(--warning-bg)', 
-                    borderColor: 'var(--warning-border)',
-                    color: 'var(--warning-text)'
-                }}>
-                    <h3 style={{ 
-                        color: 'var(--warning-text)',
-                        marginTop: '0',
-                        marginBottom: '10px'
-                    }}>
-                        ⚠️ Borderline Configuration
-                    </h3>
-                    <p style={{ 
-                        margin: '0 0 10px 0',
-                        lineHeight: '1.5'
-                    }}>
-                        Your GPU setup will work but with only {results.vramMargin}GB VRAM margin. Consider reducing context length or using more GPUs for better performance.
-                        Estimated performance: {results.tokensPerSecond} tokens/second.
-                    </p>
-                    {warningsSection}
-                </div>
-            );
-        } else {
-            return (
-                <div style={{ 
-                    ...baseStyles, 
-                    backgroundColor: 'var(--error-bg)', 
-                    borderColor: 'var(--error-border)',
-                    color: 'var(--error-text)'
-                }}>
-                    <h3 style={{ 
-                        color: 'var(--error-text)',
-                        marginTop: '0',
-                        marginBottom: '10px'
-                    }}>
-                        ❌ Insufficient VRAM
-                    </h3>
-                    <p style={{ 
-                        margin: '0 0 10px 0',
-                        lineHeight: '1.5'
-                    }}>
-                        Your GPU setup lacks {Math.abs(results.vramMargin)}GB VRAM. Consider:
-                    </p>
-                    <ul style={{ 
-                        marginLeft: '20px', 
-                        marginTop: '10px',
-                        color: 'inherit'
-                    }}>
-                        <li>Using more GPUs</li>
-                        <li>Using higher quantization (e.g., 8-bit)</li>
-                        <li>Reducing context length</li>
-                        <li>Using a GPU with more VRAM</li>
-                    </ul>
-                    {warningsSection}
-                </div>
-            );
-        }
     };
 
     // Add tracking to quantization changes
@@ -687,13 +450,13 @@ const OllamaGPUCalculator = () => {
                         fontWeight: '600',
                         color: 'var(--text-primary)'
                     }}>
-                        {results.gpuRAM} GB VRAM needed
+                        {formatGB(results.totalGPURAM)} GB VRAM needed
                         {' · '}
                         {results.isCompatible && !results.isBorderline && 'Compatible'}
                         {results.isBorderline && 'Borderline'}
                         {!results.isCompatible && 'Insufficient VRAM'}
                     </p>
-                    {getCompatibilityMessage()}
+                    <CompatibilityBanner results={results} warnings={warnings} />
 
                     <div style={{ 
                         marginTop: '20px', 
@@ -720,7 +483,7 @@ const OllamaGPUCalculator = () => {
                                 color: 'var(--accent-primary)', 
                                 margin: '0 0 10px 0' 
                             }}>
-                                {results.gpuRAM} GB
+                                {formatGB(results.totalGPURAM)} GB
                             </p>
                             <div style={{ 
                                 fontSize: '14px', 
@@ -728,8 +491,8 @@ const OllamaGPUCalculator = () => {
                                 lineHeight: '1.2', 
                                 marginTop: '8px' 
                             }}>
-                                <p style={{ margin: '0' }}>Base Model: {results.modelSize} GB</p>
-                                <p style={{ margin: '0' }}>KV Cache: {results.kvCache} GB</p>
+                                <p style={{ margin: '0' }}>Base Model: {formatGB(results.baseModelSizeGB)} GB</p>
+                                <p style={{ margin: '0' }}>KV Cache: {formatGB(results.kvCacheSize)} GB</p>
                             </div>
                         </div>
                         <div style={{ marginBottom: '20px' }}>
@@ -748,7 +511,7 @@ const OllamaGPUCalculator = () => {
                                 color: 'var(--accent-secondary)', 
                                 margin: '0 0 10px 0' 
                             }}>
-                                {results.availableVRAM} GB
+                                {formatGB(results.effectiveVRAM)} GB
                             </p>
                         </div>
                         <div style={{ marginBottom: '20px' }}>
@@ -767,7 +530,7 @@ const OllamaGPUCalculator = () => {
                                 color: 'var(--accent-tertiary)',
                                 margin: '0 0 10px 0'
                             }}>
-                                {results.systemRAM} GB
+                                {formatGB(results.totalSystemRAM)} GB
                             </p>
                         </div>
                         {results.tokensPerSecond && (

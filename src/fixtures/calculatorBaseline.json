@@ -1,0 +1,785 @@
+{
+  "scenarios": {
+    "7b-fp16-rtx4090": {
+      "input": {
+        "parameters": "7",
+        "quantization": "16",
+        "contextLength": 4096,
+        "gpuConfigs": [
+          {
+            "gpuModel": "rtx4090",
+            "count": "1"
+          }
+        ]
+      },
+      "results": {
+        "baseModelSizeGB": 13.0385160446167,
+        "kvCacheSize": 2.1203599723577935,
+        "totalGPURAM": 16.462727621436162,
+        "totalSystemRAM": 24.694091432154245,
+        "totalAvailableVRAM": 24,
+        "effectiveVRAM": 24,
+        "vramMargin": 7.537272378563838,
+        "minimumSystemRAM": 32,
+        "unifiedMemory": false,
+        "isCompatible": true,
+        "isBorderline": false,
+        "gpuConfig": "1x RTX 4090",
+        "tokensPerSecond": 57,
+        "powerConsumption": {
+          "totalPower": 438,
+          "powerDetails": [
+            {
+              "name": "RTX 4090",
+              "count": 1,
+              "power": 338,
+              "baseWatts": 338
+            }
+          ],
+          "systemOverhead": 100,
+          "utilizationFactor": 0.75
+        }
+      },
+      "warnings": [
+        "Recommended minimum 32GB RAM"
+      ],
+      "errors": {}
+    },
+    "7b-q4-rtx4090": {
+      "input": {
+        "parameters": "7",
+        "quantization": "4",
+        "contextLength": 4096,
+        "gpuConfigs": [
+          {
+            "gpuModel": "rtx4090",
+            "count": "1"
+          }
+        ]
+      },
+      "results": {
+        "baseModelSizeGB": 3.259629011154175,
+        "kvCacheSize": 2.1203599723577935,
+        "totalGPURAM": 5.705951884627385,
+        "totalSystemRAM": 6.276547073090124,
+        "totalAvailableVRAM": 24,
+        "effectiveVRAM": 24,
+        "vramMargin": 18.294048115372615,
+        "minimumSystemRAM": 8,
+        "unifiedMemory": false,
+        "isCompatible": true,
+        "isBorderline": false,
+        "gpuConfig": "1x RTX 4090",
+        "tokensPerSecond": 159,
+        "powerConsumption": {
+          "totalPower": 370,
+          "powerDetails": [
+            {
+              "name": "RTX 4090",
+              "count": 1,
+              "power": 270,
+              "baseWatts": 270
+            }
+          ],
+          "systemOverhead": 100,
+          "utilizationFactor": 0.6
+        }
+      },
+      "warnings": [
+        "Recommended minimum 8GB RAM",
+        "4-bit quantization provides fastest inference but may impact model accuracy"
+      ],
+      "errors": {}
+    },
+    "70b-fp16-h100x2": {
+      "input": {
+        "parameters": "70",
+        "quantization": "16",
+        "contextLength": 4096,
+        "gpuConfigs": [
+          {
+            "gpuModel": "h100",
+            "count": "2"
+          }
+        ]
+      },
+      "results": {
+        "baseModelSizeGB": 130.385160446167,
+        "kvCacheSize": 9.828502201999695,
+        "totalGPURAM": 153.2521786927834,
+        "totalSystemRAM": 229.87826803917508,
+        "totalAvailableVRAM": 160,
+        "effectiveVRAM": 144,
+        "vramMargin": -9.252178692783389,
+        "minimumSystemRAM": 256,
+        "unifiedMemory": false,
+        "isCompatible": false,
+        "isBorderline": false,
+        "gpuConfig": "2x H100",
+        "tokensPerSecond": 37,
+        "powerConsumption": {
+          "totalPower": 1328,
+          "powerDetails": [
+            {
+              "name": "H100",
+              "count": 2,
+              "power": 1050,
+              "baseWatts": 525
+            }
+          ],
+          "systemOverhead": 278,
+          "utilizationFactor": 0.75
+        }
+      },
+      "warnings": [
+        "Recommended minimum 256GB RAM",
+        "Models larger than 13B parameters may require multiple GPUs for optimal performance"
+      ],
+      "errors": {}
+    },
+    "7b-fp16-m3-max": {
+      "input": {
+        "parameters": "7",
+        "quantization": "16",
+        "contextLength": 4096,
+        "gpuConfigs": [
+          {
+            "gpuModel": "m3-max",
+            "count": "1"
+          }
+        ]
+      },
+      "results": {
+        "baseModelSizeGB": 13.0385160446167,
+        "kvCacheSize": 2.1203599723577935,
+        "totalGPURAM": 16.462727621436162,
+        "totalSystemRAM": 16.462727621436162,
+        "totalAvailableVRAM": 40,
+        "effectiveVRAM": 40,
+        "vramMargin": 23.537272378563838,
+        "minimumSystemRAM": 32,
+        "unifiedMemory": true,
+        "isCompatible": true,
+        "isBorderline": false,
+        "gpuConfig": "1x Apple M3 Max",
+        "tokensPerSecond": 22,
+        "powerConsumption": {
+          "totalPower": 169,
+          "powerDetails": [
+            {
+              "name": "Apple M3 Max",
+              "count": 1,
+              "power": 69,
+              "baseWatts": 69
+            }
+          ],
+          "systemOverhead": 100,
+          "utilizationFactor": 0.75
+        }
+      },
+      "warnings": [
+        "Recommended minimum 32GB unified memory"
+      ],
+      "errors": {}
+    },
+    "13b-q8-a100": {
+      "input": {
+        "parameters": "13",
+        "quantization": "8",
+        "contextLength": 8192,
+        "gpuConfigs": [
+          {
+            "gpuModel": "a100-80gb",
+            "count": "1"
+          }
+        ]
+      },
+      "results": {
+        "baseModelSizeGB": 12.10719347000122,
+        "kvCacheSize": 6.318307354049729,
+        "totalGPURAM": 19.63622017105107,
+        "totalSystemRAM": 23.563464205261287,
+        "totalAvailableVRAM": 80,
+        "effectiveVRAM": 80,
+        "vramMargin": 60.36377982894893,
+        "minimumSystemRAM": 32,
+        "unifiedMemory": false,
+        "isCompatible": true,
+        "isBorderline": false,
+        "gpuConfig": "1x A100 80GB",
+        "tokensPerSecond": 94,
+        "powerConsumption": {
+          "totalPower": 410,
+          "powerDetails": [
+            {
+              "name": "A100 80GB",
+              "count": 1,
+              "power": 260,
+              "baseWatts": 260
+            }
+          ],
+          "systemOverhead": 150,
+          "utilizationFactor": 0.65
+        }
+      },
+      "warnings": [
+        "Recommended minimum 32GB RAM",
+        "8-bit quantization offers good balance of speed and accuracy"
+      ],
+      "errors": {}
+    },
+    "7b-fp16-hetero": {
+      "input": {
+        "parameters": "7",
+        "quantization": "16",
+        "contextLength": 4096,
+        "gpuConfigs": [
+          {
+            "gpuModel": "h100",
+            "count": "1"
+          },
+          {
+            "gpuModel": "a2",
+            "count": "1"
+          }
+        ]
+      },
+      "results": {
+        "baseModelSizeGB": 13.0385160446167,
+        "kvCacheSize": 2.1203599723577935,
+        "totalGPURAM": 16.462727621436162,
+        "totalSystemRAM": 24.694091432154245,
+        "totalAvailableVRAM": 96,
+        "effectiveVRAM": 86.4,
+        "vramMargin": 69.93727237856385,
+        "minimumSystemRAM": 32,
+        "unifiedMemory": false,
+        "isCompatible": true,
+        "isBorderline": false,
+        "gpuConfig": "1x H100 + 1x A2",
+        "tokensPerSecond": 20,
+        "powerConsumption": {
+          "totalPower": 724,
+          "powerDetails": [
+            {
+              "name": "H100",
+              "count": 1,
+              "power": 525,
+              "baseWatts": 525
+            },
+            {
+              "name": "A2",
+              "count": 1,
+              "power": 45,
+              "baseWatts": 45
+            }
+          ],
+          "systemOverhead": 154,
+          "utilizationFactor": 0.75
+        }
+      },
+      "warnings": [
+        "Recommended minimum 32GB RAM",
+        "Mixed GPU generations may result in reduced performance"
+      ],
+      "errors": {}
+    },
+    "7b-fp16-multi-row": {
+      "input": {
+        "parameters": "7",
+        "quantization": "16",
+        "contextLength": 4096,
+        "gpuConfigs": [
+          {
+            "gpuModel": "rtx4090",
+            "count": "1"
+          },
+          {
+            "gpuModel": "rtx4090",
+            "count": "1"
+          }
+        ]
+      },
+      "results": {
+        "baseModelSizeGB": 13.0385160446167,
+        "kvCacheSize": 2.1203599723577935,
+        "totalGPURAM": 16.462727621436162,
+        "totalSystemRAM": 24.694091432154245,
+        "totalAvailableVRAM": 48,
+        "effectiveVRAM": 43.2,
+        "vramMargin": 26.73727237856384,
+        "minimumSystemRAM": 32,
+        "unifiedMemory": false,
+        "isCompatible": true,
+        "isBorderline": false,
+        "gpuConfig": "1x RTX 4090 + 1x RTX 4090",
+        "tokensPerSecond": 102,
+        "powerConsumption": {
+          "totalPower": 835,
+          "powerDetails": [
+            {
+              "name": "RTX 4090",
+              "count": 1,
+              "power": 338,
+              "baseWatts": 338
+            },
+            {
+              "name": "RTX 4090",
+              "count": 1,
+              "power": 338,
+              "baseWatts": 338
+            }
+          ],
+          "systemOverhead": 159,
+          "utilizationFactor": 0.75
+        }
+      },
+      "warnings": [
+        "Recommended minimum 32GB RAM"
+      ],
+      "errors": {}
+    },
+    "7b-fp16-long-ctx": {
+      "input": {
+        "parameters": "7",
+        "quantization": "16",
+        "contextLength": 65536,
+        "gpuConfigs": [
+          {
+            "gpuModel": "rtx4090",
+            "count": "1"
+          }
+        ]
+      },
+      "results": {
+        "baseModelSizeGB": 13.0385160446167,
+        "kvCacheSize": 33.925759557724696,
+        "totalGPURAM": 48.268127206803065,
+        "totalSystemRAM": 72.4021908102046,
+        "totalAvailableVRAM": 24,
+        "effectiveVRAM": 24,
+        "vramMargin": -24.268127206803065,
+        "minimumSystemRAM": 128,
+        "unifiedMemory": false,
+        "isCompatible": false,
+        "isBorderline": false,
+        "gpuConfig": "1x RTX 4090",
+        "tokensPerSecond": 18,
+        "powerConsumption": {
+          "totalPower": 438,
+          "powerDetails": [
+            {
+              "name": "RTX 4090",
+              "count": 1,
+              "power": 338,
+              "baseWatts": 338
+            }
+          ],
+          "systemOverhead": 100,
+          "utilizationFactor": 0.75
+        }
+      },
+      "warnings": [
+        "Recommended minimum 128GB RAM",
+        "Extended context length requires significantly more VRAM and may impact performance",
+        "Long context with FP16 may require significant VRAM"
+      ],
+      "errors": {}
+    },
+    "7b-fp16-amd": {
+      "input": {
+        "parameters": "7",
+        "quantization": "16",
+        "contextLength": 4096,
+        "gpuConfigs": [
+          {
+            "gpuModel": "rx7900xtx",
+            "count": "1"
+          }
+        ]
+      },
+      "results": {
+        "baseModelSizeGB": 13.0385160446167,
+        "kvCacheSize": 2.1203599723577935,
+        "totalGPURAM": 16.462727621436162,
+        "totalSystemRAM": 24.694091432154245,
+        "totalAvailableVRAM": 24,
+        "effectiveVRAM": 24,
+        "vramMargin": 7.537272378563838,
+        "minimumSystemRAM": 32,
+        "unifiedMemory": false,
+        "isCompatible": true,
+        "isBorderline": false,
+        "gpuConfig": "1x Radeon RX 7900 XTX",
+        "tokensPerSecond": 54,
+        "powerConsumption": {
+          "totalPower": 366,
+          "powerDetails": [
+            {
+              "name": "Radeon RX 7900 XTX",
+              "count": 1,
+              "power": 266,
+              "baseWatts": 266
+            }
+          ],
+          "systemOverhead": 100,
+          "utilizationFactor": 0.75
+        }
+      },
+      "warnings": [
+        "Recommended minimum 32GB RAM",
+        "AMD GPUs are supported on Windows and Linux with ROCm"
+      ],
+      "errors": {}
+    },
+    "7b-fp16-pascal": {
+      "input": {
+        "parameters": "7",
+        "quantization": "16",
+        "contextLength": 4096,
+        "gpuConfigs": [
+          {
+            "gpuModel": "gtx1080ti",
+            "count": "1"
+          }
+        ]
+      },
+      "results": {
+        "baseModelSizeGB": 13.0385160446167,
+        "kvCacheSize": 2.1203599723577935,
+        "totalGPURAM": 16.462727621436162,
+        "totalSystemRAM": 24.694091432154245,
+        "totalAvailableVRAM": 11,
+        "effectiveVRAM": 11,
+        "vramMargin": -5.462727621436162,
+        "minimumSystemRAM": 32,
+        "unifiedMemory": false,
+        "isCompatible": false,
+        "isBorderline": false,
+        "gpuConfig": "1x GTX 1080 Ti",
+        "tokensPerSecond": 27,
+        "powerConsumption": {
+          "totalPower": 288,
+          "powerDetails": [
+            {
+              "name": "GTX 1080 Ti",
+              "count": 1,
+              "power": 188,
+              "baseWatts": 188
+            }
+          ],
+          "systemOverhead": 100,
+          "utilizationFactor": 0.75
+        }
+      },
+      "warnings": [
+        "Recommended minimum 32GB RAM",
+        "Pascal architecture may have limited support for newer optimizations"
+      ],
+      "errors": {}
+    },
+    "70b-q4-insufficient": {
+      "input": {
+        "parameters": "70",
+        "quantization": "4",
+        "contextLength": 4096,
+        "gpuConfigs": [
+          {
+            "gpuModel": "rtx4090",
+            "count": "1"
+          }
+        ]
+      },
+      "results": {
+        "baseModelSizeGB": 32.59629011154175,
+        "kvCacheSize": 9.828502201999695,
+        "totalGPURAM": 45.68442132469562,
+        "totalSystemRAM": 50.25286345716518,
+        "totalAvailableVRAM": 24,
+        "effectiveVRAM": 24,
+        "vramMargin": -21.68442132469562,
+        "minimumSystemRAM": 64,
+        "unifiedMemory": false,
+        "isCompatible": false,
+        "isBorderline": false,
+        "gpuConfig": "1x RTX 4090",
+        "tokensPerSecond": 20,
+        "powerConsumption": {
+          "totalPower": 470,
+          "powerDetails": [
+            {
+              "name": "RTX 4090",
+              "count": 1,
+              "power": 270,
+              "baseWatts": 270
+            }
+          ],
+          "systemOverhead": 200,
+          "utilizationFactor": 0.6
+        }
+      },
+      "warnings": [
+        "Recommended minimum 64GB RAM",
+        "Models larger than 13B parameters may require multiple GPUs for optimal performance",
+        "4-bit quantization provides fastest inference but may impact model accuracy"
+      ],
+      "errors": {}
+    },
+    "3b-fp16-borderline": {
+      "input": {
+        "parameters": "3",
+        "quantization": "16",
+        "contextLength": 4096,
+        "gpuConfigs": [
+          {
+            "gpuModel": "rtx4060ti",
+            "count": "1"
+          }
+        ]
+      },
+      "results": {
+        "baseModelSizeGB": 5.587935447692871,
+        "kvCacheSize": 1.2110908904786677,
+        "totalGPURAM": 7.3578198829408255,
+        "totalSystemRAM": 11.036729824411239,
+        "totalAvailableVRAM": 8,
+        "effectiveVRAM": 8,
+        "vramMargin": 0.6421801170591745,
+        "minimumSystemRAM": 16,
+        "unifiedMemory": false,
+        "isCompatible": true,
+        "isBorderline": true,
+        "gpuConfig": "1x RTX 4060 Ti",
+        "tokensPerSecond": 36,
+        "powerConsumption": {
+          "totalPower": 195,
+          "powerDetails": [
+            {
+              "name": "RTX 4060 Ti",
+              "count": 1,
+              "power": 120,
+              "baseWatts": 120
+            }
+          ],
+          "systemOverhead": 75,
+          "utilizationFactor": 0.75
+        }
+      },
+      "warnings": [
+        "Recommended minimum 16GB RAM"
+      ],
+      "errors": {}
+    },
+    "3gpu-scaling-warning": {
+      "input": {
+        "parameters": "7",
+        "quantization": "16",
+        "contextLength": 4096,
+        "gpuConfigs": [
+          {
+            "gpuModel": "rtx4090",
+            "count": "3"
+          }
+        ]
+      },
+      "results": {
+        "baseModelSizeGB": 13.0385160446167,
+        "kvCacheSize": 2.1203599723577935,
+        "totalGPURAM": 16.462727621436162,
+        "totalSystemRAM": 24.694091432154245,
+        "totalAvailableVRAM": 72,
+        "effectiveVRAM": 64.8,
+        "vramMargin": 48.33727237856384,
+        "minimumSystemRAM": 32,
+        "unifiedMemory": false,
+        "isCompatible": true,
+        "isBorderline": false,
+        "gpuConfig": "3x RTX 4090",
+        "tokensPerSecond": 139,
+        "powerConsumption": {
+          "totalPower": 1232,
+          "powerDetails": [
+            {
+              "name": "RTX 4090",
+              "count": 3,
+              "power": 1014,
+              "baseWatts": 338
+            }
+          ],
+          "systemOverhead": 218,
+          "utilizationFactor": 0.75
+        }
+      },
+      "warnings": [
+        "Recommended minimum 32GB RAM",
+        "Multi-GPU scaling efficiency decreases with more than 2 GPUs"
+      ],
+      "errors": {}
+    },
+    "mixed-unified-discrete": {
+      "input": {
+        "parameters": "7",
+        "quantization": "16",
+        "contextLength": 4096,
+        "gpuConfigs": [
+          {
+            "gpuModel": "m3-max",
+            "count": "1"
+          },
+          {
+            "gpuModel": "rtx4090",
+            "count": "1"
+          }
+        ]
+      },
+      "results": {
+        "baseModelSizeGB": 13.0385160446167,
+        "kvCacheSize": 2.1203599723577935,
+        "totalGPURAM": 16.462727621436162,
+        "totalSystemRAM": 24.694091432154245,
+        "totalAvailableVRAM": 64,
+        "effectiveVRAM": 57.6,
+        "vramMargin": 41.137272378563836,
+        "minimumSystemRAM": 32,
+        "unifiedMemory": false,
+        "isCompatible": true,
+        "isBorderline": false,
+        "gpuConfig": "1x Apple M3 Max + 1x RTX 4090",
+        "tokensPerSecond": 40,
+        "powerConsumption": {
+          "totalPower": 552,
+          "powerDetails": [
+            {
+              "name": "Apple M3 Max",
+              "count": 1,
+              "power": 69,
+              "baseWatts": 69
+            },
+            {
+              "name": "RTX 4090",
+              "count": 1,
+              "power": 338,
+              "baseWatts": 338
+            }
+          ],
+          "systemOverhead": 145,
+          "utilizationFactor": 0.75
+        }
+      },
+      "warnings": [
+        "Recommended minimum 32GB RAM",
+        "Mixed GPU generations may result in reduced performance"
+      ],
+      "errors": {}
+    },
+    "empty-slot-ignored": {
+      "input": {
+        "parameters": "7",
+        "quantization": "16",
+        "contextLength": 4096,
+        "gpuConfigs": [
+          {
+            "gpuModel": "",
+            "count": "1"
+          },
+          {
+            "gpuModel": "rtx4090",
+            "count": "1"
+          }
+        ]
+      },
+      "results": {
+        "baseModelSizeGB": 13.0385160446167,
+        "kvCacheSize": 2.1203599723577935,
+        "totalGPURAM": 16.462727621436162,
+        "totalSystemRAM": 24.694091432154245,
+        "totalAvailableVRAM": 24,
+        "effectiveVRAM": 24,
+        "vramMargin": 7.537272378563838,
+        "minimumSystemRAM": 32,
+        "unifiedMemory": false,
+        "isCompatible": true,
+        "isBorderline": false,
+        "gpuConfig": "1x RTX 4090",
+        "tokensPerSecond": 57,
+        "powerConsumption": {
+          "totalPower": 438,
+          "powerDetails": [
+            {
+              "name": "RTX 4090",
+              "count": 1,
+              "power": 338,
+              "baseWatts": 338
+            }
+          ],
+          "systemOverhead": 100,
+          "utilizationFactor": 0.75
+        }
+      },
+      "warnings": [
+        "Recommended minimum 32GB RAM"
+      ],
+      "errors": {}
+    }
+  },
+  "validation": {
+    "empty-params": {
+      "input": {
+        "parameters": "",
+        "gpuConfigs": [
+          {
+            "gpuModel": "",
+            "count": "1"
+          }
+        ]
+      },
+      "valid": false,
+      "errors": {}
+    },
+    "invalid-params": {
+      "input": {
+        "parameters": "abc",
+        "gpuConfigs": [
+          {
+            "gpuModel": "rtx4090",
+            "count": "1"
+          }
+        ]
+      },
+      "valid": false,
+      "errors": {
+        "parameters": "Please enter a valid number greater than 0 (e.g. 7 for 7B)"
+      }
+    },
+    "no-gpu": {
+      "input": {
+        "parameters": "7",
+        "gpuConfigs": [
+          {
+            "gpuModel": "",
+            "count": "1"
+          }
+        ]
+      },
+      "valid": false,
+      "errors": {
+        "gpu": "Please select at least one GPU model"
+      }
+    },
+    "zero-gpu-count": {
+      "input": {
+        "parameters": "7",
+        "gpuConfigs": [
+          {
+            "gpuModel": "rtx4090",
+            "count": "0"
+          }
+        ]
+      },
+      "valid": false,
+      "errors": {
+        "gpuCount": "Invalid GPU count. Please use 1 or more per slot."
+      }
+    }
+  }
+}

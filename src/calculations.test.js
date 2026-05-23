@@ -249,14 +249,14 @@ describe('calculateTokensPerSecond', () => {
 
 describe('calculatePowerConsumption', () => {
     it('scales with number of GPUs', () => {
-        const one = calculatePowerConsumption([{ gpuModel: 'rtx4090', count: '1' }], 7, '16');
-        const two = calculatePowerConsumption([{ gpuModel: 'rtx4090', count: '2' }], 7, '16');
+        const one = calculatePowerConsumption([{ gpuModel: 'rtx4090', count: '1' }], 7, 16);
+        const two = calculatePowerConsumption([{ gpuModel: 'rtx4090', count: '2' }], 7, 16);
         expect(two.totalPower).toBeGreaterThan(one.totalPower);
     });
 
     it('lower utilization at Q4 than FP32', () => {
-        const q4 = calculatePowerConsumption([{ gpuModel: 'rtx4090', count: '1' }], 7, '4');
-        const fp32 = calculatePowerConsumption([{ gpuModel: 'rtx4090', count: '1' }], 7, '32');
+        const q4 = calculatePowerConsumption([{ gpuModel: 'rtx4090', count: '1' }], 7, 4);
+        const fp32 = calculatePowerConsumption([{ gpuModel: 'rtx4090', count: '1' }], 7, 32);
         expect(q4.totalPower).toBeLessThan(fp32.totalPower);
     });
 
@@ -264,8 +264,8 @@ describe('calculatePowerConsumption', () => {
         const withEmpty = calculatePowerConsumption([
             { gpuModel: '', count: '1' },
             { gpuModel: 'rtx4090', count: '1' },
-        ], 7, '16');
-        const single = calculatePowerConsumption([{ gpuModel: 'rtx4090', count: '1' }], 7, '16');
+        ], 7, 16);
+        const single = calculatePowerConsumption([{ gpuModel: 'rtx4090', count: '1' }], 7, 16);
         expect(withEmpty.totalPower).toBe(single.totalPower);
     });
 });
@@ -353,26 +353,26 @@ describe('symmetric multi-GPU power overhead', () => {
     ];
 
     it('produces the same total power for equivalent setups', () => {
-        const a = calculatePowerConsumption(oneRowTwoGpus, 7, '16');
-        const b = calculatePowerConsumption(twoRowsOneGpuEach, 7, '16');
+        const a = calculatePowerConsumption(oneRowTwoGpus, 7, 16);
+        const b = calculatePowerConsumption(twoRowsOneGpuEach, 7, 16);
         expect(a.totalPower).toBe(b.totalPower);
     });
 
     it('produces the same systemOverhead for equivalent setups', () => {
-        const a = calculatePowerConsumption(oneRowTwoGpus, 7, '16');
-        const b = calculatePowerConsumption(twoRowsOneGpuEach, 7, '16');
+        const a = calculatePowerConsumption(oneRowTwoGpus, 7, 16);
+        const b = calculatePowerConsumption(twoRowsOneGpuEach, 7, 16);
         expect(a.systemOverhead).toBe(b.systemOverhead);
     });
 
     it('single GPU has no multi-GPU overhead', () => {
-        const one = calculatePowerConsumption([{ gpuModel: 'rtx4090', count: '1' }], 7, '16');
+        const one = calculatePowerConsumption([{ gpuModel: 'rtx4090', count: '1' }], 7, 16);
         // systemOverhead for 7B is 100 W base + 0 extra GPUs + 0 inter-GPU overhead.
         expect(one.systemOverhead).toBe(100);
     });
 
     it('2 GPUs add exactly one increment of inter-GPU overhead', () => {
-        const one = calculatePowerConsumption([{ gpuModel: 'rtx4090', count: '1' }], 7, '16');
-        const two = calculatePowerConsumption([{ gpuModel: 'rtx4090', count: '2' }], 7, '16');
+        const one = calculatePowerConsumption([{ gpuModel: 'rtx4090', count: '1' }], 7, 16);
+        const two = calculatePowerConsumption([{ gpuModel: 'rtx4090', count: '2' }], 7, 16);
         // Difference = rowPower (extra GPU) + 25 (per-extra) + inter-GPU power share.
         // Just assert the structure: 2-GPU overhead > 1-GPU overhead by at least +25.
         expect(two.systemOverhead).toBeGreaterThanOrEqual(one.systemOverhead + 25);

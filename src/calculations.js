@@ -13,89 +13,9 @@
 //      Single-batch autoregressive decode is memory-bandwidth-bound: every
 //      token requires reading the full model weights plus the KV cache.
 
-// GPU specifications:
-//   vram:       GB of VRAM
-//   tflops:     peak FP16 tensor/matrix throughput, dense (no sparsity).
-//               Kept mainly for display; not used in the bandwidth-bound TPS model.
-//   bandwidth:  peak memory bandwidth in GB/s (primary driver of decode TPS).
-//   tdp:        board power in watts.
-const unsortedGpuSpecs = {
-    // NVIDIA data-center
-    'h100':      { name: 'H100',           vram: 80,  generation: 'Hopper',        tflops: 989,   bandwidth: 3350, tdp: 700 },
-    'a100-80gb': { name: 'A100 80GB',      vram: 80,  generation: 'Ampere',        tflops: 312,   bandwidth: 2039, tdp: 400 },
-    'a100-40gb': { name: 'A100 40GB',      vram: 40,  generation: 'Ampere',        tflops: 312,   bandwidth: 1555, tdp: 400 },
-    'a2':        { name: 'A2',             vram: 16,  generation: 'Ampere',        tflops: 15.6,  bandwidth: 200,  tdp: 60  },
-    'l40s':      { name: 'L40S',           vram: 48,  generation: 'Ada Lovelace',  tflops: 733,   bandwidth: 864,  tdp: 350 },
-    'l4':        { name: 'L4',             vram: 24,  generation: 'Ada Lovelace',  tflops: 121.2, bandwidth: 300,  tdp: 72  },
-    'm10':       { name: 'M10',            vram: 32,  generation: 'Maxwell',       tflops: 5.56,  bandwidth: 83,   tdp: 225 },
-    'a40':       { name: 'A40',            vram: 48,  generation: 'Ampere',        tflops: 149.8, bandwidth: 696,  tdp: 300 },
-    'v100-32gb': { name: 'V100 32GB',      vram: 32,  generation: 'Volta',         tflops: 125,   bandwidth: 900,  tdp: 300 },
-    'v100-16gb': { name: 'V100 16GB',      vram: 16,  generation: 'Volta',         tflops: 125,   bandwidth: 900,  tdp: 300 },
+import { gpuSpecs } from './data/gpuSpecs.js';
 
-    // NVIDIA consumer RTX — TFLOPS values are Tensor Core FP16 dense (FP32 accumulate)
-    // for consistency with data-center cards. These are ~2× the shader FP32 rates.
-    'rtx4090':        { name: 'RTX 4090',        vram: 24, generation: 'Ada Lovelace', tflops: 165.2, bandwidth: 1008, tdp: 450 },
-    'rtx4080':        { name: 'RTX 4080',        vram: 16, generation: 'Ada Lovelace', tflops: 97.5,  bandwidth: 717,  tdp: 320 },
-    'rtx4070super':   { name: 'RTX 4070 Super',  vram: 12, generation: 'Ada Lovelace', tflops: 70.9,  bandwidth: 504,  tdp: 220 },
-    'rtx3090ti':      { name: 'RTX 3090 Ti',     vram: 24, generation: 'Ampere',       tflops: 80,    bandwidth: 1008, tdp: 450 },
-    'rtx3090':        { name: 'RTX 3090',        vram: 24, generation: 'Ampere',       tflops: 71,    bandwidth: 936,  tdp: 350 },
-    'rtx3080ti':      { name: 'RTX 3080 Ti',     vram: 12, generation: 'Ampere',       tflops: 68.2,  bandwidth: 912,  tdp: 350 },
-    'rtx3080':        { name: 'RTX 3080',        vram: 10, generation: 'Ampere',       tflops: 59.6,  bandwidth: 760,  tdp: 320 },
-    'rtx3060':        { name: 'RTX 3060',        vram: 12, generation: 'Ampere',       tflops: 25.4,  bandwidth: 360,  tdp: 170 },
-    'a6000':          { name: 'A6000',           vram: 48, generation: 'Ampere',       tflops: 77.4,  bandwidth: 768,  tdp: 300 },
-    'a5000':          { name: 'A5000',           vram: 24, generation: 'Ampere',       tflops: 55.6,  bandwidth: 768,  tdp: 230 },
-    'a4000':          { name: 'A4000',           vram: 16, generation: 'Ampere',       tflops: 38.4,  bandwidth: 448,  tdp: 140 },
-    'rtx4060ti':      { name: 'RTX 4060 Ti',     vram: 8,  generation: 'Ada Lovelace', tflops: 44.2,  bandwidth: 288,  tdp: 160 },
-    'rtx4060ti16gb':  { name: 'RTX 4060 Ti 16GB',vram: 16, generation: 'Ada Lovelace', tflops: 44.1,  bandwidth: 288,  tdp: 165 },
-
-    // NVIDIA Pascal — no tensor cores, so these remain FP32 / native FP16 rates.
-    'gtx1080ti':  { name: 'GTX 1080 Ti', vram: 11, generation: 'Pascal', tflops: 11.3, bandwidth: 484, tdp: 250 },
-    'gtx1070ti':  { name: 'GTX 1070 Ti', vram: 8,  generation: 'Pascal', tflops: 8.1,  bandwidth: 256, tdp: 180 },
-    'teslap40':   { name: 'Tesla P40',   vram: 24, generation: 'Pascal', tflops: 12,   bandwidth: 347, tdp: 250 },
-    'teslap100':  { name: 'Tesla P100',  vram: 16, generation: 'Pascal', tflops: 18.7, bandwidth: 720, tdp: 250 },
-    'gtx1070':    { name: 'GTX 1070',    vram: 8,  generation: 'Pascal', tflops: 6.5,  bandwidth: 256, tdp: 150 },
-    'gtx1060':    { name: 'GTX 1060',    vram: 6,  generation: 'Pascal', tflops: 4.4,  bandwidth: 192, tdp: 120 },
-
-    // Apple Silicon — unifiedMemory: true means "VRAM" and system RAM are the same pool.
-    'm4':     { name: 'Apple M4',     vram: 16, generation: 'Apple Silicon', tflops: 4.6,  bandwidth: 120, tdp: 30, unifiedMemory: true },
-    'm3-max': { name: 'Apple M3 Max', vram: 40, generation: 'Apple Silicon', tflops: 14.2, bandwidth: 400, tdp: 92, unifiedMemory: true },
-    'm3-pro': { name: 'Apple M3 Pro', vram: 18, generation: 'Apple Silicon', tflops: 6.4,  bandwidth: 150, tdp: 67, unifiedMemory: true },
-    'm3':     { name: 'Apple M3',     vram: 8,  generation: 'Apple Silicon', tflops: 3.6,  bandwidth: 100, tdp: 45, unifiedMemory: true },
-
-    // AMD RDNA3/4 consumer — tflops are FP16 Matrix (WMMA) dense, the TC-equivalent.
-    'rx7900xtx':   { name: 'Radeon RX 7900 XTX',    vram: 24, generation: 'RDNA3', tflops: 123, bandwidth: 960, tdp: 355 },
-    'rx7900xt':    { name: 'Radeon RX 7900 XT',     vram: 20, generation: 'RDNA3', tflops: 104, bandwidth: 800, tdp: 315 },
-    'rx7900gre':   { name: 'Radeon RX 7900 GRE',    vram: 16, generation: 'RDNA3', tflops: 92,  bandwidth: 576, tdp: 260 },
-    'rx7800xt':    { name: 'Radeon RX 7800 XT',     vram: 16, generation: 'RDNA3', tflops: 74,  bandwidth: 624, tdp: 263 },
-    'rx7700xt':    { name: 'Radeon RX 7700 XT',     vram: 12, generation: 'RDNA3', tflops: 70,  bandwidth: 432, tdp: 245 },
-    'rx9070xt':    { name: 'Radeon RX 9070 XT',     vram: 16, generation: 'RDNA4', tflops: 195, bandwidth: 645, tdp: 304 },
-    'rx9070':      { name: 'Radeon RX 9070',        vram: 16, generation: 'RDNA4', tflops: 145, bandwidth: 645, tdp: 220 },
-    'rx9060xt1':   { name: 'Radeon RX 9060 XT',     vram: 16, generation: 'RDNA4', tflops: 103, bandwidth: 320, tdp: 160 },
-    'rx9060xt2':   { name: 'Radeon RX 9060 XT',     vram: 8,  generation: 'RDNA4', tflops: 103, bandwidth: 320, tdp: 150 },
-    'rx9060xt3':   { name: 'Radeon RX 9060 XT LP',  vram: 16, generation: 'RDNA4', tflops: 100, bandwidth: 320, tdp: 140 },
-    'rx9060':      { name: 'Radeon RX 9060',        vram: 8,  generation: 'RDNA4', tflops: 86,  bandwidth: 320, tdp: 132 },
-    'radaipro':    { name: 'Radeon AI Pro R9700',   vram: 32, generation: 'RDNA4', tflops: 191, bandwidth: 640, tdp: 300 },
-    'radaipros':   { name: 'Radeon AI Pro R9700S',  vram: 32, generation: 'RDNA4', tflops: 191, bandwidth: 640, tdp: 300 },
-    'radaiprod':   { name: 'Radeon AI Pro R9700D',  vram: 32, generation: 'RDNA4', tflops: 99,  bandwidth: 640, tdp: 150 },
-
-    // AMD Instinct
-    'mi355x': { name: 'Instinct MI355X', vram: 288, generation: 'CDNA4', tflops: 2500,  bandwidth: 8064, tdp: 1400 },
-    'mi350x': { name: 'Instinct MI350X', vram: 288, generation: 'CDNA4', tflops: 2300,  bandwidth: 8064, tdp: 1000 },
-    'mi325x': { name: 'Instinct MI325X', vram: 256, generation: 'CDNA3', tflops: 1300,  bandwidth: 6000, tdp: 1000 },
-    'mi300x': { name: 'Instinct MI300X', vram: 192, generation: 'CDNA3', tflops: 1300,  bandwidth: 5300, tdp: 750 },
-    'mi250x': { name: 'Instinct MI250X', vram: 128, generation: 'CDNA2', tflops: 383,   bandwidth: 3276, tdp: 560 },
-    'mi250':  { name: 'Instinct MI250',  vram: 128, generation: 'CDNA2', tflops: 362.1, bandwidth: 3276, tdp: 560 },
-    'mi210':  { name: 'Instinct MI210',  vram: 64,  generation: 'CDNA2', tflops: 181,   bandwidth: 1638, tdp: 300 },
-};
-
-export const gpuSpecs = Object.fromEntries(
-    Object.entries(unsortedGpuSpecs).sort(([, a], [, b]) => {
-        const nameA = a.name.split(' ')[0];
-        const nameB = b.name.split(' ')[0];
-        if (nameA !== nameB) return nameA.localeCompare(nameB);
-        return a.vram - b.vram;
-    })
-);
+export { gpuSpecs } from './data/gpuSpecs.js';
 
 // Standard transformer scaling approximation.
 // params ≈ 12·L·d² with aspect ratio d/L ≈ 128 (LLaMA 7B: 4096/32, 13B: 5120/40,
@@ -126,13 +46,28 @@ export function calculateKvCacheGB(paramCount, contextLength) {
 }
 
 function getSystemRAMMultiplier(quantBits) {
-    switch (quantBits) {
-        case 32: return 2.0;
-        case 16: return 1.5;
-        case 8:  return 1.2;
-        case 4:  return 1.1;
-        default: return 1.5;
-    }
+    return getQuantSettings(quantBits).systemRamMultiplier;
+}
+
+function getUtilizationFactor(quantBits) {
+    return getQuantSettings(quantBits).utilizationFactor;
+}
+
+const QUANT_SETTINGS = {
+    32: { systemRamMultiplier: 2.0, utilizationFactor: 0.85 },
+    16: { systemRamMultiplier: 1.5, utilizationFactor: 0.75 },
+    8:  { systemRamMultiplier: 1.2, utilizationFactor: 0.65 },
+    4:  { systemRamMultiplier: 1.1, utilizationFactor: 0.60 },
+};
+
+const DEFAULT_QUANT_SETTINGS = QUANT_SETTINGS[16];
+
+function getQuantSettings(quantBits) {
+    return QUANT_SETTINGS[quantBits] ?? DEFAULT_QUANT_SETTINGS;
+}
+
+export function parseQuantBits(quantization) {
+    return parseInt(quantization, 10);
 }
 
 // Round up to the nearest power of 2 (typical RAM sizes: 8, 16, 32, 64, 128, 256).
@@ -141,72 +76,6 @@ function roundUpToRAMSize(gb) {
     const floor = 8;
     if (gb <= floor) return floor;
     return Math.pow(2, Math.ceil(Math.log2(gb)));
-}
-
-// Returns true if every active (gpuModel set, count > 0) config is unified
-// memory. Treats the setup as discrete otherwise — mixing unified with
-// discrete GPUs is physically nonsensical but we don't want to silently merge
-// their memory pools.
-function isUnifiedMemorySetup(gpuConfigs) {
-    let sawActive = false;
-    for (const config of gpuConfigs) {
-        if (!config.gpuModel || !gpuSpecs[config.gpuModel]) continue;
-        const n = parseInt(config.count, 10);
-        if (!Number.isFinite(n) || n <= 0) continue;
-        sawActive = true;
-        if (!gpuSpecs[config.gpuModel].unifiedMemory) return false;
-    }
-    return sawActive;
-}
-
-export function calculateRAMRequirements(paramCount, quantBits, contextLength, gpuConfigs) {
-    const baseModelSizeGB = calculateBaseModelSizeGB(paramCount, quantBits);
-    const kvCacheSize = calculateKvCacheGB(paramCount, contextLength);
-    const gpuOverhead = baseModelSizeGB * 0.1;
-    const totalGPURAM = baseModelSizeGB + kvCacheSize + gpuOverhead;
-
-    // On unified-memory systems (Apple Silicon), the GPU VRAM and system RAM
-    // are the same physical pool. Reporting systemRAM = gpuRAM × 1.5 on top of
-    // the VRAM requirement double-counts the same memory.
-    const unified = isUnifiedMemorySetup(gpuConfigs);
-    const totalSystemRAM = unified
-        ? totalGPURAM
-        : totalGPURAM * getSystemRAMMultiplier(quantBits);
-
-    let totalAvailableVRAM = 0;
-    let totalGpuCount = 0;
-    gpuConfigs.forEach(config => {
-        if (config.gpuModel && gpuSpecs[config.gpuModel]) {
-            const numGPUs = parseInt(config.count, 10);
-            if (Number.isFinite(numGPUs) && numGPUs > 0) {
-                totalAvailableVRAM += gpuSpecs[config.gpuModel].vram * numGPUs;
-                totalGpuCount += numGPUs;
-            }
-        }
-    });
-
-    const multiGpuEfficiency = totalGpuCount > 1 ? 0.9 : 1;
-    const effectiveVRAM = totalAvailableVRAM * multiGpuEfficiency;
-    // vramMargin is defined against the *effective* VRAM so it agrees with the
-    // isCompatible check downstream.
-    const vramMargin = effectiveVRAM - totalGPURAM;
-
-    // Derive the "recommended minimum RAM" from the actual computed requirement
-    // rather than a fixed FP16-assuming table. A Q4 7B genuinely needs less
-    // system RAM than an FP16 7B.
-    const minimumSystemRAM = roundUpToRAMSize(totalSystemRAM);
-
-    return {
-        baseModelSizeGB,
-        kvCacheSize,
-        totalGPURAM,
-        totalSystemRAM,
-        totalAvailableVRAM,
-        effectiveVRAM,
-        vramMargin,
-        minimumSystemRAM,
-        unifiedMemory: unified,
-    };
 }
 
 // Realistic fraction of peak bandwidth reached by inference kernels. Empirically
@@ -223,46 +92,94 @@ function multiGpuScalingFactor(totalGpus) {
     return 0.65;
 }
 
-export function calculateTokensPerSecond(paramCount, quantBits, contextLength, gpuConfigs) {
-    const active = gpuConfigs.filter(c => c.gpuModel && gpuSpecs[c.gpuModel]);
-    if (active.length === 0) return null;
+export function parseActiveGpuConfigs(gpuConfigs) {
+    const active = [];
+    for (const config of gpuConfigs) {
+        if (!config.gpuModel || !gpuSpecs[config.gpuModel]) continue;
+        const count = parseInt(config.count, 10);
+        if (!Number.isFinite(count) || count <= 0) continue;
+        active.push({
+            modelKey: config.gpuModel,
+            count,
+            spec: gpuSpecs[config.gpuModel],
+        });
+    }
+    return active;
+}
 
-    const modelGB = calculateBaseModelSizeGB(paramCount, quantBits);
-    const kvGB = calculateKvCacheGB(paramCount, contextLength);
-    const bytesPerToken = modelGB + kvGB;
-    if (bytesPerToken <= 0) return null;
+function buildModelMetrics(paramCount, quantBits, contextLength) {
+    const baseModelSizeGB = calculateBaseModelSizeGB(paramCount, quantBits);
+    const kvCacheSize = calculateKvCacheGB(paramCount, contextLength);
+    const totalGPURAM = baseModelSizeGB + kvCacheSize + baseModelSizeGB * 0.1;
+    return { baseModelSizeGB, kvCacheSize, totalGPURAM };
+}
 
+function summarizeGpuPool(active) {
+    let totalAvailableVRAM = 0;
     let totalGpuCount = 0;
     let summedBandwidth = 0;
     let minBandwidth = Infinity;
-    const modelKeys = new Set();
 
-    active.forEach(config => {
-        const gpu = gpuSpecs[config.gpuModel];
-        const count = parseInt(config.count, 10);
-        if (!Number.isFinite(count) || count <= 0) return;
+    for (const { count, spec } of active) {
+        totalAvailableVRAM += spec.vram * count;
         totalGpuCount += count;
-        summedBandwidth += gpu.bandwidth * count;
-        if (gpu.bandwidth < minBandwidth) minBandwidth = gpu.bandwidth;
-        modelKeys.add(config.gpuModel);
-    });
+        summedBandwidth += spec.bandwidth * count;
+        if (spec.bandwidth < minBandwidth) minBandwidth = spec.bandwidth;
+    }
 
-    if (totalGpuCount === 0) return null;
+    const modelKeys = new Set(active.map(({ modelKey }) => modelKey));
 
-    const scaling = multiGpuScalingFactor(totalGpuCount);
-    const isHeterogeneous = modelKeys.size > 1;
-
-    // Heterogeneous setups pipeline across GPUs; throughput is gated by the
-    // slowest GPU, not the sum of bandwidths.
-    const effectiveBandwidth = isHeterogeneous
-        ? minBandwidth * totalGpuCount * scaling
-        : summedBandwidth * scaling;
-
-    const tps = (effectiveBandwidth * DECODE_BANDWIDTH_EFFICIENCY) / bytesPerToken;
-    return Math.round(tps);
+    return {
+        totalAvailableVRAM,
+        totalGpuCount,
+        summedBandwidth,
+        minBandwidth: active.length > 0 ? minBandwidth : 0,
+        isHeterogeneous: modelKeys.size > 1,
+    };
 }
 
-export function calculatePowerConsumption(gpuConfigs, paramCount, quantization) {
+function isUnifiedMemorySetupFromActive(active) {
+    return active.length > 0 && active.every(({ spec }) => spec.unifiedMemory);
+}
+
+function buildRamResult(model, pool, active, quantBits) {
+    const unified = isUnifiedMemorySetupFromActive(active);
+    const totalSystemRAM = unified
+        ? model.totalGPURAM
+        : model.totalGPURAM * getSystemRAMMultiplier(quantBits);
+
+    const multiGpuEfficiency = pool.totalGpuCount > 1 ? 0.9 : 1;
+    const effectiveVRAM = pool.totalAvailableVRAM * multiGpuEfficiency;
+    const vramMargin = effectiveVRAM - model.totalGPURAM;
+
+    return {
+        baseModelSizeGB: model.baseModelSizeGB,
+        kvCacheSize: model.kvCacheSize,
+        totalGPURAM: model.totalGPURAM,
+        totalSystemRAM,
+        totalAvailableVRAM: pool.totalAvailableVRAM,
+        effectiveVRAM,
+        vramMargin,
+        minimumSystemRAM: roundUpToRAMSize(totalSystemRAM),
+        unifiedMemory: unified,
+    };
+}
+
+function computeTokensPerSecondFromMetrics(model, pool) {
+    if (pool.totalGpuCount === 0) return null;
+
+    const bytesPerToken = model.baseModelSizeGB + model.kvCacheSize;
+    if (bytesPerToken <= 0) return null;
+
+    const scaling = multiGpuScalingFactor(pool.totalGpuCount);
+    const effectiveBandwidth = pool.isHeterogeneous
+        ? pool.minBandwidth * pool.totalGpuCount * scaling
+        : pool.summedBandwidth * scaling;
+
+    return Math.round((effectiveBandwidth * DECODE_BANDWIDTH_EFFICIENCY) / bytesPerToken);
+}
+
+function computePowerFromActive(active, paramCount, quantBits) {
     const getBaseSystemOverhead = (p) => {
         if (p <= 3) return 75;
         if (p <= 7) return 100;
@@ -270,42 +187,24 @@ export function calculatePowerConsumption(gpuConfigs, paramCount, quantization) 
         return 200;
     };
 
-    const getUtilizationFactor = (q) => {
-        switch (q) {
-            case '32': return 0.85;
-            case '16': return 0.75;
-            case '8':  return 0.65;
-            case '4':  return 0.60;
-            default:   return 0.75;
-        }
-    };
-
-    const utilizationFactor = getUtilizationFactor(quantization);
+    const utilizationFactor = getUtilizationFactor(quantBits);
     const powerDetails = [];
     let basePower = 0;
     let totalGpuCount = 0;
 
-    gpuConfigs.forEach(config => {
-        if (!config.gpuModel || !gpuSpecs[config.gpuModel]) return;
-        const gpu = gpuSpecs[config.gpuModel];
-        const numGPUs = parseInt(config.count, 10);
-        if (!Number.isFinite(numGPUs) || numGPUs <= 0) return;
-
-        const gpuPower = Math.round(gpu.tdp * utilizationFactor);
-        const rowPower = gpuPower * numGPUs;
+    for (const { count, spec } of active) {
+        const gpuPower = Math.round(spec.tdp * utilizationFactor);
+        const rowPower = gpuPower * count;
         basePower += rowPower;
-        totalGpuCount += numGPUs;
+        totalGpuCount += count;
         powerDetails.push({
-            name: gpu.name,
-            count: numGPUs,
+            name: spec.name,
+            count,
             power: rowPower,
             baseWatts: gpuPower,
         });
-    });
+    }
 
-    // Inter-GPU and system overhead is based on TOTAL GPU count across all
-    // config rows, not per-row. 2 GPUs is 2 GPUs whether they're one row with
-    // count=2 or two rows with count=1.
     const extraGpus = Math.max(0, totalGpuCount - 1);
     const multiGpuPowerOverhead = Math.round(
         basePower * 0.1 * (extraGpus / Math.max(1, totalGpuCount))
@@ -318,4 +217,37 @@ export function calculatePowerConsumption(gpuConfigs, paramCount, quantization) 
         systemOverhead,
         utilizationFactor,
     };
+}
+
+export function calculateAll(paramCount, quantBits, contextLength, gpuConfigs) {
+    const active = parseActiveGpuConfigs(gpuConfigs);
+    const model = buildModelMetrics(paramCount, quantBits, contextLength);
+    const pool = summarizeGpuPool(active);
+
+    return {
+        ram: buildRamResult(model, pool, active, quantBits),
+        tokensPerSecond: computeTokensPerSecondFromMetrics(model, pool) ?? 0,
+        power: computePowerFromActive(active, paramCount, quantBits),
+        active,
+    };
+}
+
+export function calculateRAMRequirements(paramCount, quantBits, contextLength, gpuConfigs) {
+    const active = parseActiveGpuConfigs(gpuConfigs);
+    const model = buildModelMetrics(paramCount, quantBits, contextLength);
+    const pool = summarizeGpuPool(active);
+    return buildRamResult(model, pool, active, quantBits);
+}
+
+export function calculateTokensPerSecond(paramCount, quantBits, contextLength, gpuConfigs) {
+    const active = parseActiveGpuConfigs(gpuConfigs);
+    if (active.length === 0) return null;
+
+    const model = buildModelMetrics(paramCount, quantBits, contextLength);
+    const pool = summarizeGpuPool(active);
+    return computeTokensPerSecondFromMetrics(model, pool);
+}
+
+export function calculatePowerConsumption(gpuConfigs, paramCount, quantBits) {
+    return computePowerFromActive(parseActiveGpuConfigs(gpuConfigs), paramCount, quantBits);
 }
