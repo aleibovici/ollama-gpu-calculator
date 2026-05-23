@@ -27,6 +27,8 @@ const unsortedGpuSpecs = {
     'rtx3080ti':      { name: 'RTX 3080 Ti',     vram: 12, generation: 'Ampere',       tflops: 68.2,  bandwidth: 912,  tdp: 350 },
     'rtx3080':        { name: 'RTX 3080',        vram: 10, generation: 'Ampere',       tflops: 59.6,  bandwidth: 760,  tdp: 320 },
     'rtx3060':        { name: 'RTX 3060',        vram: 12, generation: 'Ampere',       tflops: 25.4,  bandwidth: 360,  tdp: 170 },
+    'rtx3060-8gb':    { name: 'RTX 3060 8GB',    vram: 8,  generation: 'Ampere',       tflops: 24.6,  bandwidth: 240,  tdp: 170 },
+    'rtx3050':        { name: 'RTX 3050',        vram: 8,  generation: 'Ampere',       tflops: 17.7,  bandwidth: 224,  tdp: 130 },
     'a6000':          { name: 'A6000',           vram: 48, generation: 'Ampere',       tflops: 77.4,  bandwidth: 768,  tdp: 300 },
     'a5000':          { name: 'A5000',           vram: 24, generation: 'Ampere',       tflops: 55.6,  bandwidth: 768,  tdp: 230 },
     'a4000':          { name: 'A4000',           vram: 16, generation: 'Ampere',       tflops: 38.4,  bandwidth: 448,  tdp: 140 },
