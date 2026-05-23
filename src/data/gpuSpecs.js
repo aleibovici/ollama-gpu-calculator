@@ -36,6 +36,7 @@ const unsortedGpuSpecs = {
     // NVIDIA Pascal — no tensor cores, so these remain FP32 / native FP16 rates.
     'gtx1080ti':  { name: 'GTX 1080 Ti', vram: 11, generation: 'Pascal', tflops: 11.3, bandwidth: 484, tdp: 250 },
     'gtx1070ti':  { name: 'GTX 1070 Ti', vram: 8,  generation: 'Pascal', tflops: 8.1,  bandwidth: 256, tdp: 180 },
+    'teslap4':    { name: 'Tesla P4',    vram: 8,  generation: 'Pascal', tflops: 5.5,  bandwidth: 192, tdp: 75  },
     'teslap40':   { name: 'Tesla P40',   vram: 24, generation: 'Pascal', tflops: 12,   bandwidth: 347, tdp: 250 },
     'teslap100':  { name: 'Tesla P100',  vram: 16, generation: 'Pascal', tflops: 18.7, bandwidth: 720, tdp: 250 },
     'gtx1070':    { name: 'GTX 1070',    vram: 8,  generation: 'Pascal', tflops: 6.5,  bandwidth: 256, tdp: 150 },
