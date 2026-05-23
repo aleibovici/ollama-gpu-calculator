@@ -1,5 +1,4 @@
-import './App.css';
-import './styles/darkMode.css';
+import './styles/instrument.css';
 import OllamaGPUCalculator from './OllamaGPUCalculator';
 import Analytics from './components/Analytics';
 

@@ -1,4 +1,4 @@
-import { formatGB } from '../calculatorOutput';
+import { formatGB, getCompatibilityTier } from '../calculatorOutput';
 
 const INSUFFICIENT_SUGGESTIONS = [
     'Add another GPU to the configuration.',
@@ -7,15 +7,9 @@ const INSUFFICIENT_SUGGESTIONS = [
     'Pick a GPU with larger VRAM.',
 ];
 
-function getVariant(results) {
-    if (results.isCompatible && !results.isBorderline) return 'ok';
-    if (results.isBorderline) return 'warn';
-    return 'bad';
-}
-
 const CompatibilityBanner = ({ results, warnings }) => {
     if (!results) return null;
-    const variant = getVariant(results);
+    const variant = getCompatibilityTier(results);
 
     const items = [];
 

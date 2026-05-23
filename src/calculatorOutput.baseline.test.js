@@ -17,6 +17,7 @@ import {
     validateCalculatorInputs,
     parseQuantBits,
 } from './calculatorOutput';
+import { calculateAll } from './calculations';
 
 describe('calculator baseline — validation', () => {
     for (const [id, fixture] of Object.entries(baseline.validation)) {
@@ -55,11 +56,18 @@ describe('calculator baseline — decomposed API matches runCalculator', () => {
                 gpuConfigs: fixture.input.gpuConfigs,
             });
 
+            const { active } = calculateAll(
+                validation.paramCount,
+                parseQuantBits(fixture.input.quantization),
+                fixture.input.contextLength,
+                fixture.input.gpuConfigs
+            );
+
             const warnings = buildWarnings({
                 paramCount: validation.paramCount,
                 quantBits: parseQuantBits(fixture.input.quantization),
                 contextLength: fixture.input.contextLength,
-                gpuConfigs: fixture.input.gpuConfigs,
+                active,
                 results,
             });
 

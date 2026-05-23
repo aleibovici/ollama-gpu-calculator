@@ -6,8 +6,7 @@
    color for status. Display moments in Instrument Serif.
    ============================================================ */
 
-:root,
-.dark-mode {
+:root {
   /* Surface stack — near-black with subtle elevation steps */
   --bg-0: #0a0a0b;        /* page canvas */
   --bg-1: #111113;        /* card surface */
@@ -46,33 +45,6 @@
   --font-sans: "Inter", -apple-system, BlinkMacSystemFont, "Segoe UI", system-ui, sans-serif;
   --font-mono: "JetBrains Mono", ui-monospace, SFMono-Regular, Menlo, monospace;
   --font-display: "Instrument Serif", "Times New Roman", serif;
-
-  /* Compat shims for any leftover references */
-  --bg-primary: var(--bg-0);
-  --bg-secondary: var(--bg-1);
-  --bg-tertiary: var(--bg-2);
-  --bg-card: var(--bg-1);
-  --bg-input: var(--bg-2);
-  --text-primary: var(--ink-1);
-  --text-secondary: var(--ink-2);
-  --text-tertiary: var(--ink-3);
-  --text-inverse: var(--bg-0);
-  --border-color: var(--line);
-  --border-hover: var(--line-strong);
-  --accent-primary: var(--signal-info);
-  --accent-secondary: var(--signal-ok);
-  --accent-tertiary: var(--signal-info);
-  --accent-warning: var(--signal-warn);
-  --accent-danger: var(--signal-bad);
-  --success-bg: var(--signal-ok-bg);
-  --success-border: var(--signal-ok);
-  --success-text: var(--signal-ok);
-  --warning-bg: var(--signal-warn-bg);
-  --warning-border: var(--signal-warn);
-  --warning-text: var(--signal-warn);
-  --error-bg: var(--signal-bad-bg);
-  --error-border: var(--signal-bad);
-  --error-text: var(--signal-bad);
 }
 
 /* ----------------------------------------------------------
@@ -344,6 +316,17 @@ body {
   letter-spacing: 0.1em;
 }
 
+.iw-field-error {
+  margin: 8px 0 0;
+  font-size: 12px;
+  color: var(--signal-bad);
+  font-family: var(--font-mono);
+}
+
+.iw-field-error--leading {
+  margin: 0 0 10px;
+}
+
 .iw-input,
 .iw-select {
   width: 100%;
@@ -441,6 +424,10 @@ body {
   gap: 8px;
   margin-bottom: 8px;
   align-items: stretch;
+}
+
+.iw-gpu-row-spacer {
+  width: 44px;
 }
 
 /* ----------------------------------------------------------
@@ -818,6 +805,10 @@ body {
 .iw-hero-sub span { color: var(--ink-3); }
 .iw-hero-sub b { color: var(--ink-1); font-weight: 500; }
 
+.iw-signal-value[data-state="ok"] { color: var(--signal-ok); }
+.iw-signal-value[data-state="warn"] { color: var(--signal-warn); }
+.iw-signal-value[data-state="bad"] { color: var(--signal-bad); }
+
 /* VRAM gauge */
 .iw-gauge {
   padding: 22px;
@@ -857,7 +848,7 @@ body {
   left: 0;
   bottom: 0;
   background: var(--signal-ok);
-  width: 0;
+  width: var(--iw-gauge-pct, 0%);
   transition: width 0.5s cubic-bezier(0.2, 0.8, 0.2, 1), background 0.3s;
   box-shadow: var(--glow-ok);
 }
@@ -958,9 +949,18 @@ body {
 
 .iw-metric-detail div { color: var(--ink-2); }
 
+.iw-metric-detail-note {
+  color: var(--ink-3);
+}
+
 /* Warnings */
 .iw-advisory {
   padding: 20px 22px;
+}
+
+.iw-advisory.is-compact {
+  padding: 0;
+  margin-bottom: 18px;
 }
 
 .iw-advisory-title {

@@ -233,19 +233,12 @@ export function calculateAll(paramCount, quantBits, contextLength, gpuConfigs) {
 }
 
 export function calculateRAMRequirements(paramCount, quantBits, contextLength, gpuConfigs) {
-    const active = parseActiveGpuConfigs(gpuConfigs);
-    const model = buildModelMetrics(paramCount, quantBits, contextLength);
-    const pool = summarizeGpuPool(active);
-    return buildRamResult(model, pool, active, quantBits);
+    return calculateAll(paramCount, quantBits, contextLength, gpuConfigs).ram;
 }
 
 export function calculateTokensPerSecond(paramCount, quantBits, contextLength, gpuConfigs) {
-    const active = parseActiveGpuConfigs(gpuConfigs);
-    if (active.length === 0) return null;
-
-    const model = buildModelMetrics(paramCount, quantBits, contextLength);
-    const pool = summarizeGpuPool(active);
-    return computeTokensPerSecondFromMetrics(model, pool);
+    const { tokensPerSecond, active } = calculateAll(paramCount, quantBits, contextLength, gpuConfigs);
+    return active.length === 0 ? null : tokensPerSecond;
 }
 
 export function calculatePowerConsumption(gpuConfigs, paramCount, quantBits) {

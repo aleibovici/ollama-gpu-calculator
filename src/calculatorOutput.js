@@ -4,7 +4,6 @@
 
 import {
     calculateAll,
-    parseActiveGpuConfigs,
     parseQuantBits,
 } from './calculations';
 
@@ -12,6 +11,14 @@ export { parseQuantBits } from './calculations';
 
 export function formatGB(gb) {
     return gb.toFixed(2);
+}
+
+/** Shared ok | warn | bad tier for status readout and advisory banner. */
+export function getCompatibilityTier(results) {
+    if (!results) return null;
+    if (results.isCompatible && !results.isBorderline) return 'ok';
+    if (results.isBorderline) return 'warn';
+    return 'bad';
 }
 
 export function validateCalculatorInputs({ parameters, gpuConfigs }) {
@@ -75,8 +82,7 @@ export function computeCalculatorResults({ paramCount, quantBits, contextLength,
     return buildCalculatorResults(ram, tokensPerSecond, power, active);
 }
 
-export function buildWarnings({ paramCount, quantBits, contextLength, gpuConfigs, results }) {
-    const active = parseActiveGpuConfigs(gpuConfigs);
+export function buildWarnings({ paramCount, quantBits, contextLength, active, results }) {
     const totalGpuCount = active.reduce((n, { count }) => n + count, 0);
     const generations = new Set(active.map(({ spec }) => spec.generation));
 
@@ -130,19 +136,19 @@ export function runCalculator({ parameters, quantization, contextLength, gpuConf
     }
 
     const quantBits = parseQuantBits(quantization);
-
-    const results = computeCalculatorResults({
-        paramCount: validation.paramCount,
+    const { ram, tokensPerSecond, power, active } = calculateAll(
+        validation.paramCount,
         quantBits,
         contextLength,
-        gpuConfigs,
-    });
+        gpuConfigs
+    );
 
+    const results = buildCalculatorResults(ram, tokensPerSecond, power, active);
     const warnings = buildWarnings({
         paramCount: validation.paramCount,
         quantBits,
         contextLength,
-        gpuConfigs,
+        active,
         results,
     });
 

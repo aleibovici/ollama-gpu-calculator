@@ -1,6 +1,6 @@
-import React, { useState, useMemo, useEffect } from 'react';
+import React, { useState, useMemo, useEffect, useRef } from 'react';
 import ReactGA from 'react-ga4';
-import { runCalculator, formatGB } from './calculatorOutput';
+import { runCalculator, formatGB, getCompatibilityTier } from './calculatorOutput';
 import CompatibilityBanner from './components/CompatibilityBanner';
 import GpuCombobox from './components/GpuCombobox';
 
@@ -26,13 +26,6 @@ const NOTES = [
     'Power figures account for utilization patterns during LLM inference, not peak TDP.',
 ];
 
-const getStatusState = (results) => {
-    if (!results) return null;
-    if (results.isCompatible && !results.isBorderline) return 'ok';
-    if (results.isBorderline) return 'warn';
-    return 'bad';
-};
-
 const statusLabel = {
     ok:   'Compatible',
     warn: 'Borderline',
@@ -40,10 +33,11 @@ const statusLabel = {
 };
 
 const OllamaGPUCalculator = () => {
+    const nextGpuRowId = useRef(2);
     const [parameters, setParameters] = useState('');
     const [quantization, setQuantization] = useState('16');
     const [contextLength, setContextLength] = useState(4096);
-    const [gpuConfigs, setGpuConfigs] = useState([{ gpuModel: '', count: '1' }]);
+    const [gpuConfigs, setGpuConfigs] = useState([{ id: 1, gpuModel: '', count: '1' }]);
 
     const { results, validationErrors, warnings } = useMemo(() => {
         if (!parameters.trim() && !gpuConfigs.some(c => c.gpuModel)) {
@@ -88,7 +82,9 @@ const OllamaGPUCalculator = () => {
         ReactGA.event({ category: 'Settings', action: 'Change Context Length', label: `${value} tokens` });
     };
 
-    const addGpuConfig = () => setGpuConfigs([...gpuConfigs, { gpuModel: '', count: '1' }]);
+    const addGpuConfig = () => {
+        setGpuConfigs([...gpuConfigs, { id: nextGpuRowId.current++, gpuModel: '', count: '1' }]);
+    };
     const removeGpuConfig = (index) => setGpuConfigs(gpuConfigs.filter((_, i) => i !== index));
     const updateGpuConfig = (index, field, value) => {
         const next = [...gpuConfigs];
@@ -96,7 +92,7 @@ const OllamaGPUCalculator = () => {
         setGpuConfigs(next);
     };
 
-    const statusState = getStatusState(results);
+    const statusState = getCompatibilityTier(results);
     const utilizationPct = results
         ? Math.min(100, Math.max(0, (results.totalGPURAM / Math.max(results.effectiveVRAM, 0.001)) * 100))
         : 0;
@@ -135,7 +131,7 @@ const OllamaGPUCalculator = () => {
                     </div>
                     <div className="iw-panel-body">
                         {validationErrors.calculation && (
-                            <div className="iw-advisory is-bad" role="alert" style={{ padding: 0, marginBottom: 18 }}>
+                            <div className="iw-advisory is-bad is-compact" role="alert">
                                 <ul><li>{validationErrors.calculation}</li></ul>
                             </div>
                         )}
@@ -155,7 +151,7 @@ const OllamaGPUCalculator = () => {
                                 min="0.1" max="200" step="0.1"
                             />
                             {validationErrors.parameters && (
-                                <p style={{ margin: '8px 0 0', fontSize: 12, color: 'var(--signal-bad)', fontFamily: 'var(--font-mono)' }} role="alert">
+                                <p className="iw-field-error" role="alert">
                                     {validationErrors.parameters}
                                 </p>
                             )}
@@ -167,13 +163,13 @@ const OllamaGPUCalculator = () => {
                                 <span className="iw-label-hint">{gpuConfigs.length} unit{gpuConfigs.length > 1 ? 's' : ''}</span>
                             </label>
                             {(validationErrors.gpu || validationErrors.gpuCount) && (
-                                <p style={{ margin: '0 0 10px', fontSize: 12, color: 'var(--signal-bad)', fontFamily: 'var(--font-mono)' }} role="alert">
+                                <p className="iw-field-error iw-field-error--leading" role="alert">
                                     {validationErrors.gpu || validationErrors.gpuCount}
                                 </p>
                             )}
 
                             {gpuConfigs.map((config, index) => (
-                                <div key={index} className="iw-gpu-row">
+                                <div key={config.id} className="iw-gpu-row">
                                     <GpuCombobox
                                         value={config.gpuModel}
                                         onChange={(v) => updateGpuConfig(index, 'gpuModel', v)}
@@ -201,7 +197,7 @@ const OllamaGPUCalculator = () => {
                                             ×
                                         </button>
                                     ) : (
-                                        <span style={{ width: 44 }} />
+                                        <span className="iw-gpu-row-spacer" aria-hidden="true" />
                                     )}
                                 </div>
                             ))}
@@ -286,7 +282,7 @@ const OllamaGPUCalculator = () => {
                                     <div className="iw-hero-sub">
                                         <div><span>Model</span> <b>{formatGB(results.baseModelSizeGB)} GB</b></div>
                                         <div><span>KV cache</span> <b>{formatGB(results.kvCacheSize)} GB</b></div>
-                                        <div><span>Margin</span> <b style={{ color: statusState === 'bad' ? 'var(--signal-bad)' : statusState === 'warn' ? 'var(--signal-warn)' : 'var(--signal-ok)' }}>
+                                        <div><span>Margin</span> <b className="iw-signal-value" data-state={statusState}>
                                             {results.vramMargin >= 0 ? '+' : ''}{formatGB(results.vramMargin)} GB
                                         </b></div>
                                     </div>
@@ -299,7 +295,10 @@ const OllamaGPUCalculator = () => {
                                     <b>{Math.round(utilizationPct)}%</b>
                                 </div>
                                 <div className="iw-gauge-track">
-                                    <div className="iw-gauge-fill" style={{ width: `${Math.min(utilizationPct, 100)}%` }} />
+                                    <div
+                                        className="iw-gauge-fill"
+                                        style={{ '--iw-gauge-pct': `${Math.min(utilizationPct, 100)}%` }}
+                                    />
                                     <div className="iw-gauge-ticks" />
                                 </div>
                                 <div className="iw-gauge-foot">
@@ -338,7 +337,7 @@ const OllamaGPUCalculator = () => {
                                         {results.powerConsumption.powerDetails.map((d, i) => (
                                             <div key={i}>{d.count}× {d.name} · {d.power}W</div>
                                         ))}
-                                        <div style={{ color: 'var(--ink-3)' }}>
+                                        <div className="iw-metric-detail-note">
                                             +{results.powerConsumption.systemOverhead}W system · {Math.round(results.powerConsumption.utilizationFactor * 100)}% util
                                         </div>
                                     </div>
