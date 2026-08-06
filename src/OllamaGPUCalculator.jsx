@@ -32,12 +32,17 @@ const statusLabel = {
     bad:  'Insufficient',
 };
 
+const THEME_STORAGE_KEY = 'ogc-theme';
+
 const OllamaGPUCalculator = () => {
     const nextGpuRowId = useRef(2);
     const [parameters, setParameters] = useState('');
     const [quantization, setQuantization] = useState('16');
     const [contextLength, setContextLength] = useState(4096);
     const [gpuConfigs, setGpuConfigs] = useState([{ id: 1, gpuModel: '', count: '1' }]);
+    const [theme, setTheme] = useState(
+        () => (document.documentElement.getAttribute('data-theme') === 'light' ? 'light' : 'dark')
+    );
 
     const { results, validationErrors, warnings } = useMemo(() => {
         if (!parameters.trim() && !gpuConfigs.some(c => c.gpuModel)) {
@@ -72,6 +77,15 @@ const OllamaGPUCalculator = () => {
         });
     }, [results, parameters]);
 
+    useEffect(() => {
+        document.documentElement.setAttribute('data-theme', theme);
+        try {
+            window.localStorage.setItem(THEME_STORAGE_KEY, theme);
+        } catch {
+            // Ignore storage write issues to avoid impacting calculator behavior.
+        }
+    }, [theme]);
+
     const handleQuantizationChange = (value) => {
         setQuantization(value);
         ReactGA.event({ category: 'Settings', action: 'Change Quantization', label: `${value}-bit` });
@@ -80,6 +94,10 @@ const OllamaGPUCalculator = () => {
     const handleContextLengthChange = (value) => {
         setContextLength(parseInt(value));
         ReactGA.event({ category: 'Settings', action: 'Change Context Length', label: `${value} tokens` });
+    };
+
+    const handleThemeToggle = () => {
+        setTheme((currentTheme) => (currentTheme === 'dark' ? 'light' : 'dark'));
     };
 
     const addGpuConfig = () => {
@@ -110,6 +128,32 @@ const OllamaGPUCalculator = () => {
                         performance, and power.
                     </p>
                 </div>
+
+                <div className="iw-theme-toggle-wrap">
+                    <button
+                        type="button"
+                        className={`iw-theme-toggle ${theme === 'light' ? 'is-light' : 'is-dark'}`}
+                        aria-label={theme === 'dark' ? 'Switch to light theme' : 'Switch to dark theme'}
+                        aria-pressed={theme === 'light'}
+                        onClick={handleThemeToggle}
+                    >
+                        <span className="iw-theme-toggle-track">
+                            <span className="iw-theme-toggle-icon iw-theme-toggle-icon--sun" aria-hidden="true">
+                                <svg viewBox="0 0 20 20" width="12" height="12" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round">
+                                    <circle cx="10" cy="10" r="3.3" />
+                                    <path d="M10 2.3v2.1M10 15.6v2.1M2.3 10h2.1M15.6 10h2.1M4.6 4.6l1.5 1.5M13.9 13.9l1.5 1.5M15.4 4.6l-1.5 1.5M6.1 13.9l-1.5 1.5" />
+                                </svg>
+                            </span>
+                            <span className="iw-theme-toggle-icon iw-theme-toggle-icon--moon" aria-hidden="true">
+                                <svg viewBox="0 0 20 20" width="15" height="15" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
+                                    <path d="M13.8 13.5a5.8 5.8 0 1 1-5.3-10 6.5 6.5 0 1 0 5.3 10z" />
+                                </svg>
+                            </span>
+                            <span className="iw-theme-toggle-thumb" aria-hidden="true" />
+                        </span>
+                    </button>
+                </div>
+
                 <div className="iw-header-side">
                     <div className="iw-meta">
                         REV <span>v2</span> · CALIB <span>2026.05</span><br />
