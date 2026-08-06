@@ -45,6 +45,38 @@
   --font-sans: "Inter", -apple-system, BlinkMacSystemFont, "Segoe UI", system-ui, sans-serif;
   --font-mono: "JetBrains Mono", ui-monospace, SFMono-Regular, Menlo, monospace;
   --font-display: "Instrument Serif", "Times New Roman", serif;
+  --selection-ink: #0a0a0b;
+}
+
+[data-theme="light"] {
+  --bg-0: #faf8f4;
+  --bg-1: #ffffff;
+  --bg-2: #eef2f7;
+  --bg-3: #e3e9f1;
+
+  --line: #d4dce7;
+  --line-strong: #bdc8d6;
+  --line-glow: #aab7c8;
+
+  --ink-1: #12161d;
+  --ink-2: #394555;
+  --ink-3: #5f6d7f;
+  --ink-4: #8491a1;
+
+  --signal-ok: #5a9130;
+  --signal-warn: #b87417;
+  --signal-bad: #cc3d3d;
+  --signal-info: #2d82cb;
+
+  --signal-ok-bg: rgba(90, 145, 48, 0.12);
+  --signal-warn-bg: rgba(184, 116, 23, 0.12);
+  --signal-bad-bg: rgba(204, 61, 61, 0.1);
+
+  --shadow-card: 0 0 0 1px var(--line), 0 26px 58px -38px rgba(11, 24, 42, 0.25);
+  --glow-ok: 0 0 20px -8px rgba(90, 145, 48, 0.35);
+  --glow-warn: 0 0 20px -8px rgba(184, 116, 23, 0.3);
+  --glow-bad: 0 0 20px -8px rgba(204, 61, 61, 0.3);
+  --selection-ink: #f3f5f8;
 }
 
 /* ----------------------------------------------------------
@@ -60,11 +92,23 @@ html, body {
   margin: 0;
 }
 
+html[data-theme="dark"] {
+  color-scheme: dark;
+}
+
+html[data-theme="light"] {
+  color-scheme: light;
+}
+
 body {
   background-image:
     radial-gradient(ellipse 80% 50% at 50% -10%, rgba(109, 211, 255, 0.06), transparent 60%),
     radial-gradient(ellipse 60% 40% at 100% 100%, rgba(184, 255, 91, 0.04), transparent 60%);
   min-height: 100vh;
+}
+
+[data-theme="light"] body {
+  background-image: none;
 }
 
 .App {
@@ -73,7 +117,7 @@ body {
 
 ::selection {
   background: var(--signal-ok);
-  color: var(--bg-0);
+  color: var(--selection-ink);
 }
 
 *:focus-visible {
@@ -103,10 +147,108 @@ body {
   align-items: flex-end;
   justify-content: space-between;
   gap: 24px;
+  padding-right: 82px;
   padding-bottom: 28px;
   margin-bottom: 36px;
   border-bottom: 1px solid var(--line);
   position: relative;
+}
+
+.iw-theme-toggle-wrap {
+  position: absolute;
+  top: 0;
+  right: 0;
+}
+
+.iw-theme-toggle {
+  border: none;
+  background: transparent;
+  padding: 0;
+  margin: 0;
+  cursor: pointer;
+  -webkit-tap-highlight-color: transparent;
+}
+
+.iw-theme-toggle-track {
+  width: 58px;
+  height: 32px;
+  border-radius: 999px;
+  border: 1px solid var(--line-strong);
+  background: linear-gradient(180deg, var(--bg-2), var(--bg-3));
+  box-shadow:
+    inset 0 1px 0 rgba(255, 255, 255, 0.08),
+    0 10px 20px -14px rgba(0, 0, 0, 0.5);
+  position: relative;
+  display: block;
+  overflow: hidden;
+  transition: border-color 0.28s cubic-bezier(0.2, 0.8, 0.2, 1),
+              background 0.28s cubic-bezier(0.2, 0.8, 0.2, 1),
+              box-shadow 0.28s cubic-bezier(0.2, 0.8, 0.2, 1),
+              transform 0.2s ease;
+}
+
+.iw-theme-toggle:hover .iw-theme-toggle-track {
+  border-color: var(--line-glow);
+}
+
+.iw-theme-toggle:active .iw-theme-toggle-track {
+  transform: scale(0.985);
+}
+
+.iw-theme-toggle:focus-visible .iw-theme-toggle-track {
+  outline: 2px solid var(--signal-ok);
+  outline-offset: 3px;
+}
+
+.iw-theme-toggle-icon {
+  position: absolute;
+  top: 50%;
+  width: 12px;
+  height: 12px;
+  transform: translateY(-50%) scale(0.82);
+  color: var(--ink-3);
+  opacity: 0.5;
+  transition: transform 0.35s cubic-bezier(0.2, 0.8, 0.2, 1), opacity 0.25s ease, color 0.25s ease;
+}
+
+.iw-theme-toggle-icon--sun { left: 8px; }
+.iw-theme-toggle-icon--moon { right: 8px; }
+
+.iw-theme-toggle-thumb {
+  position: absolute;
+  top: 2px;
+  left: 2px;
+  width: 26px;
+  height: 26px;
+  border-radius: 50%;
+  background: var(--bg-1);
+  box-shadow:
+    0 1px 1px rgba(0, 0, 0, 0.2),
+    0 6px 16px -10px rgba(0, 0, 0, 0.6),
+    inset 0 0 0 1px rgba(255, 255, 255, 0.1);
+  transform: translate3d(0, 0, 0);
+  transition: transform 0.38s cubic-bezier(0.22, 0.9, 0.28, 1),
+              background 0.28s cubic-bezier(0.2, 0.8, 0.2, 1),
+              box-shadow 0.28s cubic-bezier(0.2, 0.8, 0.2, 1);
+  will-change: transform;
+}
+
+.iw-theme-toggle.is-light .iw-theme-toggle-thumb {
+  transform: translate3d(26px, 0, 0);
+}
+
+.iw-theme-toggle.is-dark .iw-theme-toggle-icon--moon,
+.iw-theme-toggle.is-light .iw-theme-toggle-icon--sun {
+  opacity: 1;
+  transform: translateY(-50%) scale(1);
+  color: var(--ink-1);
+}
+
+@media (max-width: 720px) {
+  .iw-header {
+    padding-top: 44px;
+    padding-right: 0;
+  }
 }
 
 .iw-header::after {
