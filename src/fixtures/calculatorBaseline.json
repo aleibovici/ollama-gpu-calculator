@@ -14,7 +14,9 @@
       },
       "results": {
         "baseModelSizeGB": 13.0385160446167,
+        "activeWeightSizeGB": 13.0385160446167,
         "kvCacheSize": 2.1203599723577935,
+        "multimodalOverheadGB": 0,
         "totalGPURAM": 16.462727621436162,
         "totalSystemRAM": 24.694091432154245,
         "totalAvailableVRAM": 24,
@@ -22,6 +24,14 @@
         "vramMargin": 7.537272378563838,
         "minimumSystemRAM": 32,
         "unifiedMemory": false,
+        "scheduleMode": "single",
+        "isMoE": false,
+        "activeParamsB": 7,
+        "totalParamsB": 7,
+        "kvCacheType": "f16",
+        "gqaRatio": 1,
+        "multiGpuEfficiency": 1,
+        "maxSingleVram": 24,
         "isCompatible": true,
         "isBorderline": false,
         "gpuConfig": "1x RTX 4090",
@@ -41,7 +51,8 @@
         }
       },
       "warnings": [
-        "Recommended minimum 32GB RAM"
+        "Recommended minimum 32GB RAM",
+        "Suggested context for ~24GB VRAM (Ollama VRAM tiers): 32k"
       ],
       "errors": {}
     },
@@ -59,7 +70,9 @@
       },
       "results": {
         "baseModelSizeGB": 3.259629011154175,
+        "activeWeightSizeGB": 3.259629011154175,
         "kvCacheSize": 2.1203599723577935,
+        "multimodalOverheadGB": 0,
         "totalGPURAM": 5.705951884627385,
         "totalSystemRAM": 6.276547073090124,
         "totalAvailableVRAM": 24,
@@ -67,6 +80,14 @@
         "vramMargin": 18.294048115372615,
         "minimumSystemRAM": 8,
         "unifiedMemory": false,
+        "scheduleMode": "single",
+        "isMoE": false,
+        "activeParamsB": 7,
+        "totalParamsB": 7,
+        "kvCacheType": "f16",
+        "gqaRatio": 1,
+        "multiGpuEfficiency": 1,
+        "maxSingleVram": 24,
         "isCompatible": true,
         "isBorderline": false,
         "gpuConfig": "1x RTX 4090",
@@ -87,7 +108,8 @@
       },
       "warnings": [
         "Recommended minimum 8GB RAM",
-        "4-bit quantization provides fastest inference but may impact model accuracy"
+        "4-bit class quantization (Q4_K_M / NVFP4 / MXFP4) trades quality for memory and speed",
+        "Suggested context for ~24GB VRAM (Ollama VRAM tiers): 32k"
       ],
       "errors": {}
     },
@@ -105,18 +127,28 @@
       },
       "results": {
         "baseModelSizeGB": 130.385160446167,
+        "activeWeightSizeGB": 130.385160446167,
         "kvCacheSize": 9.828502201999695,
+        "multimodalOverheadGB": 0,
         "totalGPURAM": 153.2521786927834,
         "totalSystemRAM": 229.87826803917508,
         "totalAvailableVRAM": 160,
-        "effectiveVRAM": 144,
-        "vramMargin": -9.252178692783389,
+        "effectiveVRAM": 136,
+        "vramMargin": -17.25217869278339,
         "minimumSystemRAM": 256,
         "unifiedMemory": false,
+        "scheduleMode": "split",
+        "isMoE": false,
+        "activeParamsB": 70,
+        "totalParamsB": 70,
+        "kvCacheType": "f16",
+        "gqaRatio": 1,
+        "multiGpuEfficiency": 0.85,
+        "maxSingleVram": 80,
         "isCompatible": false,
         "isBorderline": false,
         "gpuConfig": "2x H100",
-        "tokensPerSecond": 37,
+        "tokensPerSecond": 33,
         "powerConsumption": {
           "totalPower": 1328,
           "powerDetails": [
@@ -133,7 +165,9 @@
       },
       "warnings": [
         "Recommended minimum 256GB RAM",
-        "Models larger than 13B parameters may require multiple GPUs for optimal performance"
+        "Model exceeds a single GPU — estimate assumes a split across GPUs with PCIe overhead (ballpark, not Ollama’s measured scheduler)",
+        "Models larger than 13B parameters may require multiple GPUs for optimal performance",
+        "Suggested context for ~80GB VRAM (Ollama VRAM tiers): 256k"
       ],
       "errors": {}
     },
@@ -151,7 +185,9 @@
       },
       "results": {
         "baseModelSizeGB": 13.0385160446167,
+        "activeWeightSizeGB": 13.0385160446167,
         "kvCacheSize": 2.1203599723577935,
+        "multimodalOverheadGB": 0,
         "totalGPURAM": 16.462727621436162,
         "totalSystemRAM": 16.462727621436162,
         "totalAvailableVRAM": 40,
@@ -159,6 +195,14 @@
         "vramMargin": 23.537272378563838,
         "minimumSystemRAM": 32,
         "unifiedMemory": true,
+        "scheduleMode": "single",
+        "isMoE": false,
+        "activeParamsB": 7,
+        "totalParamsB": 7,
+        "kvCacheType": "f16",
+        "gqaRatio": 1,
+        "multiGpuEfficiency": 1,
+        "maxSingleVram": 40,
         "isCompatible": true,
         "isBorderline": false,
         "gpuConfig": "1x Apple M3 Max",
@@ -178,7 +222,8 @@
         }
       },
       "warnings": [
-        "Recommended minimum 32GB unified memory"
+        "Recommended minimum 32GB unified memory",
+        "Suggested context for ~40GB VRAM (Ollama VRAM tiers): 32k"
       ],
       "errors": {}
     },
@@ -196,7 +241,9 @@
       },
       "results": {
         "baseModelSizeGB": 12.10719347000122,
+        "activeWeightSizeGB": 12.10719347000122,
         "kvCacheSize": 6.318307354049729,
+        "multimodalOverheadGB": 0,
         "totalGPURAM": 19.63622017105107,
         "totalSystemRAM": 23.563464205261287,
         "totalAvailableVRAM": 80,
@@ -204,6 +251,14 @@
         "vramMargin": 60.36377982894893,
         "minimumSystemRAM": 32,
         "unifiedMemory": false,
+        "scheduleMode": "single",
+        "isMoE": false,
+        "activeParamsB": 13,
+        "totalParamsB": 13,
+        "kvCacheType": "f16",
+        "gqaRatio": 1,
+        "multiGpuEfficiency": 1,
+        "maxSingleVram": 80,
         "isCompatible": true,
         "isBorderline": false,
         "gpuConfig": "1x A100 80GB",
@@ -224,7 +279,8 @@
       },
       "warnings": [
         "Recommended minimum 32GB RAM",
-        "8-bit quantization offers good balance of speed and accuracy"
+        "8-bit quantization offers good balance of speed and accuracy",
+        "Suggested context for ~80GB VRAM (Ollama VRAM tiers): 256k"
       ],
       "errors": {}
     },
@@ -246,41 +302,47 @@
       },
       "results": {
         "baseModelSizeGB": 13.0385160446167,
+        "activeWeightSizeGB": 13.0385160446167,
         "kvCacheSize": 2.1203599723577935,
+        "multimodalOverheadGB": 0,
         "totalGPURAM": 16.462727621436162,
         "totalSystemRAM": 24.694091432154245,
         "totalAvailableVRAM": 96,
-        "effectiveVRAM": 86.4,
-        "vramMargin": 69.93727237856385,
+        "effectiveVRAM": 80,
+        "vramMargin": 63.53727237856384,
         "minimumSystemRAM": 32,
         "unifiedMemory": false,
+        "scheduleMode": "single",
+        "isMoE": false,
+        "activeParamsB": 7,
+        "totalParamsB": 7,
+        "kvCacheType": "f16",
+        "gqaRatio": 1,
+        "multiGpuEfficiency": 1,
+        "maxSingleVram": 80,
         "isCompatible": true,
         "isBorderline": false,
         "gpuConfig": "1x H100 + 1x A2",
-        "tokensPerSecond": 20,
+        "tokensPerSecond": 188,
         "powerConsumption": {
-          "totalPower": 724,
+          "totalPower": 625,
           "powerDetails": [
             {
               "name": "H100",
               "count": 1,
               "power": 525,
               "baseWatts": 525
-            },
-            {
-              "name": "A2",
-              "count": 1,
-              "power": 45,
-              "baseWatts": 45
             }
           ],
-          "systemOverhead": 154,
+          "systemOverhead": 100,
           "utilizationFactor": 0.75
         }
       },
       "warnings": [
         "Recommended minimum 32GB RAM",
-        "Mixed GPU generations may result in reduced performance"
+        "Model fits on one GPU — Ollama prefers a single-GPU path (pooled multi-GPU split not required)",
+        "Mixed GPU generations may result in reduced performance",
+        "Suggested context for ~80GB VRAM (Ollama VRAM tiers): 256k"
       ],
       "errors": {}
     },
@@ -302,27 +364,31 @@
       },
       "results": {
         "baseModelSizeGB": 13.0385160446167,
+        "activeWeightSizeGB": 13.0385160446167,
         "kvCacheSize": 2.1203599723577935,
+        "multimodalOverheadGB": 0,
         "totalGPURAM": 16.462727621436162,
         "totalSystemRAM": 24.694091432154245,
         "totalAvailableVRAM": 48,
-        "effectiveVRAM": 43.2,
-        "vramMargin": 26.73727237856384,
+        "effectiveVRAM": 24,
+        "vramMargin": 7.537272378563838,
         "minimumSystemRAM": 32,
         "unifiedMemory": false,
+        "scheduleMode": "single",
+        "isMoE": false,
+        "activeParamsB": 7,
+        "totalParamsB": 7,
+        "kvCacheType": "f16",
+        "gqaRatio": 1,
+        "multiGpuEfficiency": 1,
+        "maxSingleVram": 24,
         "isCompatible": true,
         "isBorderline": false,
         "gpuConfig": "1x RTX 4090 + 1x RTX 4090",
-        "tokensPerSecond": 102,
+        "tokensPerSecond": 57,
         "powerConsumption": {
-          "totalPower": 835,
+          "totalPower": 438,
           "powerDetails": [
-            {
-              "name": "RTX 4090",
-              "count": 1,
-              "power": 338,
-              "baseWatts": 338
-            },
             {
               "name": "RTX 4090",
               "count": 1,
@@ -330,12 +396,14 @@
               "baseWatts": 338
             }
           ],
-          "systemOverhead": 159,
+          "systemOverhead": 100,
           "utilizationFactor": 0.75
         }
       },
       "warnings": [
-        "Recommended minimum 32GB RAM"
+        "Recommended minimum 32GB RAM",
+        "Model fits on one GPU — Ollama prefers a single-GPU path (pooled multi-GPU split not required)",
+        "Suggested context for ~24GB VRAM (Ollama VRAM tiers): 32k"
       ],
       "errors": {}
     },
@@ -353,7 +421,9 @@
       },
       "results": {
         "baseModelSizeGB": 13.0385160446167,
+        "activeWeightSizeGB": 13.0385160446167,
         "kvCacheSize": 33.925759557724696,
+        "multimodalOverheadGB": 0,
         "totalGPURAM": 48.268127206803065,
         "totalSystemRAM": 72.4021908102046,
         "totalAvailableVRAM": 24,
@@ -361,6 +431,14 @@
         "vramMargin": -24.268127206803065,
         "minimumSystemRAM": 128,
         "unifiedMemory": false,
+        "scheduleMode": "single",
+        "isMoE": false,
+        "activeParamsB": 7,
+        "totalParamsB": 7,
+        "kvCacheType": "f16",
+        "gqaRatio": 1,
+        "multiGpuEfficiency": 1,
+        "maxSingleVram": 24,
         "isCompatible": false,
         "isBorderline": false,
         "gpuConfig": "1x RTX 4090",
@@ -382,7 +460,8 @@
       "warnings": [
         "Recommended minimum 128GB RAM",
         "Extended context length requires significantly more VRAM and may impact performance",
-        "Long context with FP16 may require significant VRAM"
+        "Long context with FP16 weights may require significant VRAM",
+        "Suggested context for ~24GB VRAM (Ollama VRAM tiers): 32k"
       ],
       "errors": {}
     },
@@ -400,7 +479,9 @@
       },
       "results": {
         "baseModelSizeGB": 13.0385160446167,
+        "activeWeightSizeGB": 13.0385160446167,
         "kvCacheSize": 2.1203599723577935,
+        "multimodalOverheadGB": 0,
         "totalGPURAM": 16.462727621436162,
         "totalSystemRAM": 24.694091432154245,
         "totalAvailableVRAM": 24,
@@ -408,6 +489,14 @@
         "vramMargin": 7.537272378563838,
         "minimumSystemRAM": 32,
         "unifiedMemory": false,
+        "scheduleMode": "single",
+        "isMoE": false,
+        "activeParamsB": 7,
+        "totalParamsB": 7,
+        "kvCacheType": "f16",
+        "gqaRatio": 1,
+        "multiGpuEfficiency": 1,
+        "maxSingleVram": 24,
         "isCompatible": true,
         "isBorderline": false,
         "gpuConfig": "1x Radeon RX 7900 XTX",
@@ -428,7 +517,8 @@
       },
       "warnings": [
         "Recommended minimum 32GB RAM",
-        "AMD GPUs are supported on Windows and Linux with ROCm"
+        "AMD GPUs: Linux uses ROCm v7; some Windows/RDNA2 configs fall back to Vulkan",
+        "Suggested context for ~24GB VRAM (Ollama VRAM tiers): 32k"
       ],
       "errors": {}
     },
@@ -446,7 +536,9 @@
       },
       "results": {
         "baseModelSizeGB": 13.0385160446167,
+        "activeWeightSizeGB": 13.0385160446167,
         "kvCacheSize": 2.1203599723577935,
+        "multimodalOverheadGB": 0,
         "totalGPURAM": 16.462727621436162,
         "totalSystemRAM": 24.694091432154245,
         "totalAvailableVRAM": 11,
@@ -454,6 +546,14 @@
         "vramMargin": -5.462727621436162,
         "minimumSystemRAM": 32,
         "unifiedMemory": false,
+        "scheduleMode": "single",
+        "isMoE": false,
+        "activeParamsB": 7,
+        "totalParamsB": 7,
+        "kvCacheType": "f16",
+        "gqaRatio": 1,
+        "multiGpuEfficiency": 1,
+        "maxSingleVram": 11,
         "isCompatible": false,
         "isBorderline": false,
         "gpuConfig": "1x GTX 1080 Ti",
@@ -492,7 +592,9 @@
       },
       "results": {
         "baseModelSizeGB": 32.59629011154175,
+        "activeWeightSizeGB": 32.59629011154175,
         "kvCacheSize": 9.828502201999695,
+        "multimodalOverheadGB": 0,
         "totalGPURAM": 45.68442132469562,
         "totalSystemRAM": 50.25286345716518,
         "totalAvailableVRAM": 24,
@@ -500,6 +602,14 @@
         "vramMargin": -21.68442132469562,
         "minimumSystemRAM": 64,
         "unifiedMemory": false,
+        "scheduleMode": "single",
+        "isMoE": false,
+        "activeParamsB": 70,
+        "totalParamsB": 70,
+        "kvCacheType": "f16",
+        "gqaRatio": 1,
+        "multiGpuEfficiency": 1,
+        "maxSingleVram": 24,
         "isCompatible": false,
         "isBorderline": false,
         "gpuConfig": "1x RTX 4090",
@@ -521,7 +631,8 @@
       "warnings": [
         "Recommended minimum 64GB RAM",
         "Models larger than 13B parameters may require multiple GPUs for optimal performance",
-        "4-bit quantization provides fastest inference but may impact model accuracy"
+        "4-bit class quantization (Q4_K_M / NVFP4 / MXFP4) trades quality for memory and speed",
+        "Suggested context for ~24GB VRAM (Ollama VRAM tiers): 32k"
       ],
       "errors": {}
     },
@@ -539,7 +650,9 @@
       },
       "results": {
         "baseModelSizeGB": 5.587935447692871,
+        "activeWeightSizeGB": 5.587935447692871,
         "kvCacheSize": 1.2110908904786677,
+        "multimodalOverheadGB": 0,
         "totalGPURAM": 7.3578198829408255,
         "totalSystemRAM": 11.036729824411239,
         "totalAvailableVRAM": 8,
@@ -547,6 +660,14 @@
         "vramMargin": 0.6421801170591745,
         "minimumSystemRAM": 16,
         "unifiedMemory": false,
+        "scheduleMode": "single",
+        "isMoE": false,
+        "activeParamsB": 3,
+        "totalParamsB": 3,
+        "kvCacheType": "f16",
+        "gqaRatio": 1,
+        "multiGpuEfficiency": 1,
+        "maxSingleVram": 8,
         "isCompatible": true,
         "isBorderline": true,
         "gpuConfig": "1x RTX 4060 Ti",
@@ -584,35 +705,46 @@
       },
       "results": {
         "baseModelSizeGB": 13.0385160446167,
+        "activeWeightSizeGB": 13.0385160446167,
         "kvCacheSize": 2.1203599723577935,
+        "multimodalOverheadGB": 0,
         "totalGPURAM": 16.462727621436162,
         "totalSystemRAM": 24.694091432154245,
         "totalAvailableVRAM": 72,
-        "effectiveVRAM": 64.8,
-        "vramMargin": 48.33727237856384,
+        "effectiveVRAM": 24,
+        "vramMargin": 7.537272378563838,
         "minimumSystemRAM": 32,
         "unifiedMemory": false,
+        "scheduleMode": "single",
+        "isMoE": false,
+        "activeParamsB": 7,
+        "totalParamsB": 7,
+        "kvCacheType": "f16",
+        "gqaRatio": 1,
+        "multiGpuEfficiency": 1,
+        "maxSingleVram": 24,
         "isCompatible": true,
         "isBorderline": false,
         "gpuConfig": "3x RTX 4090",
-        "tokensPerSecond": 139,
+        "tokensPerSecond": 57,
         "powerConsumption": {
-          "totalPower": 1232,
+          "totalPower": 438,
           "powerDetails": [
             {
               "name": "RTX 4090",
-              "count": 3,
-              "power": 1014,
+              "count": 1,
+              "power": 338,
               "baseWatts": 338
             }
           ],
-          "systemOverhead": 218,
+          "systemOverhead": 100,
           "utilizationFactor": 0.75
         }
       },
       "warnings": [
         "Recommended minimum 32GB RAM",
-        "Multi-GPU scaling efficiency decreases with more than 2 GPUs"
+        "Model fits on one GPU — Ollama prefers a single-GPU path (pooled multi-GPU split not required)",
+        "Suggested context for ~24GB VRAM (Ollama VRAM tiers): 32k"
       ],
       "errors": {}
     },
@@ -634,41 +766,47 @@
       },
       "results": {
         "baseModelSizeGB": 13.0385160446167,
+        "activeWeightSizeGB": 13.0385160446167,
         "kvCacheSize": 2.1203599723577935,
+        "multimodalOverheadGB": 0,
         "totalGPURAM": 16.462727621436162,
         "totalSystemRAM": 24.694091432154245,
         "totalAvailableVRAM": 64,
-        "effectiveVRAM": 57.6,
-        "vramMargin": 41.137272378563836,
+        "effectiveVRAM": 40,
+        "vramMargin": 23.537272378563838,
         "minimumSystemRAM": 32,
         "unifiedMemory": false,
+        "scheduleMode": "single",
+        "isMoE": false,
+        "activeParamsB": 7,
+        "totalParamsB": 7,
+        "kvCacheType": "f16",
+        "gqaRatio": 1,
+        "multiGpuEfficiency": 1,
+        "maxSingleVram": 40,
         "isCompatible": true,
         "isBorderline": false,
         "gpuConfig": "1x Apple M3 Max + 1x RTX 4090",
-        "tokensPerSecond": 40,
+        "tokensPerSecond": 22,
         "powerConsumption": {
-          "totalPower": 552,
+          "totalPower": 169,
           "powerDetails": [
             {
               "name": "Apple M3 Max",
               "count": 1,
               "power": 69,
               "baseWatts": 69
-            },
-            {
-              "name": "RTX 4090",
-              "count": 1,
-              "power": 338,
-              "baseWatts": 338
             }
           ],
-          "systemOverhead": 145,
+          "systemOverhead": 100,
           "utilizationFactor": 0.75
         }
       },
       "warnings": [
         "Recommended minimum 32GB RAM",
-        "Mixed GPU generations may result in reduced performance"
+        "Model fits on one GPU — Ollama prefers a single-GPU path (pooled multi-GPU split not required)",
+        "Mixed GPU generations may result in reduced performance",
+        "Suggested context for ~40GB VRAM (Ollama VRAM tiers): 32k"
       ],
       "errors": {}
     },
@@ -690,7 +828,9 @@
       },
       "results": {
         "baseModelSizeGB": 13.0385160446167,
+        "activeWeightSizeGB": 13.0385160446167,
         "kvCacheSize": 2.1203599723577935,
+        "multimodalOverheadGB": 0,
         "totalGPURAM": 16.462727621436162,
         "totalSystemRAM": 24.694091432154245,
         "totalAvailableVRAM": 24,
@@ -698,6 +838,14 @@
         "vramMargin": 7.537272378563838,
         "minimumSystemRAM": 32,
         "unifiedMemory": false,
+        "scheduleMode": "single",
+        "isMoE": false,
+        "activeParamsB": 7,
+        "totalParamsB": 7,
+        "kvCacheType": "f16",
+        "gqaRatio": 1,
+        "multiGpuEfficiency": 1,
+        "maxSingleVram": 24,
         "isCompatible": true,
         "isBorderline": false,
         "gpuConfig": "1x RTX 4090",
@@ -717,7 +865,284 @@
         }
       },
       "warnings": [
-        "Recommended minimum 32GB RAM"
+        "Recommended minimum 32GB RAM",
+        "Suggested context for ~24GB VRAM (Ollama VRAM tiers): 32k"
+      ],
+      "errors": {}
+    },
+    "moe-gemma4-26b-rtx5090": {
+      "input": {
+        "parameters": "25.2",
+        "quantization": "4.5",
+        "contextLength": 4096,
+        "gpuConfigs": [
+          {
+            "gpuModel": "rtx5090",
+            "count": "1"
+          }
+        ],
+        "kvCacheType": "f16",
+        "presetId": "gemma4-26b"
+      },
+      "results": {
+        "baseModelSizeGB": 13.201497495174408,
+        "activeWeightSizeGB": 1.9907020032405853,
+        "kvCacheSize": 1.2309483688541745,
+        "multimodalOverheadGB": 0.55,
+        "totalGPURAM": 16.302595613546025,
+        "totalSystemRAM": 18.25890708717155,
+        "totalAvailableVRAM": 32,
+        "effectiveVRAM": 32,
+        "vramMargin": 15.697404386453975,
+        "minimumSystemRAM": 32,
+        "unifiedMemory": false,
+        "scheduleMode": "single",
+        "isMoE": true,
+        "activeParamsB": 3.8,
+        "totalParamsB": 25.2,
+        "kvCacheType": "f16",
+        "gqaRatio": 0.25,
+        "multiGpuEfficiency": 1,
+        "maxSingleVram": 32,
+        "isCompatible": true,
+        "isBorderline": false,
+        "gpuConfig": "1x RTX 5090",
+        "tokensPerSecond": 473,
+        "powerConsumption": {
+          "totalPower": 557,
+          "powerDetails": [
+            {
+              "name": "RTX 5090",
+              "count": 1,
+              "power": 357,
+              "baseWatts": 357
+            }
+          ],
+          "systemOverhead": 200,
+          "utilizationFactor": 0.62
+        }
+      },
+      "warnings": [
+        "Recommended minimum 32GB RAM",
+        "MoE model: Required VRAM uses total weights (25.2B); tok/s uses ~3.8B active params",
+        "4-bit class quantization (Q4_K_M / NVFP4 / MXFP4) trades quality for memory and speed",
+        "Suggested context for ~32GB VRAM (Ollama VRAM tiers): 32k",
+        "Includes ~0.55GB multimodal encoder overhead stub"
+      ],
+      "errors": {}
+    },
+    "7b-kv-q8-rtx4090": {
+      "input": {
+        "parameters": "7",
+        "quantization": "16",
+        "contextLength": 4096,
+        "gpuConfigs": [
+          {
+            "gpuModel": "rtx4090",
+            "count": "1"
+          }
+        ],
+        "kvCacheType": "q8_0"
+      },
+      "results": {
+        "baseModelSizeGB": 13.0385160446167,
+        "activeWeightSizeGB": 13.0385160446167,
+        "kvCacheSize": 1.0601799861788967,
+        "multimodalOverheadGB": 0,
+        "totalGPURAM": 15.402547635257266,
+        "totalSystemRAM": 23.1038214528859,
+        "totalAvailableVRAM": 24,
+        "effectiveVRAM": 24,
+        "vramMargin": 8.597452364742734,
+        "minimumSystemRAM": 32,
+        "unifiedMemory": false,
+        "scheduleMode": "single",
+        "isMoE": false,
+        "activeParamsB": 7,
+        "totalParamsB": 7,
+        "kvCacheType": "q8_0",
+        "gqaRatio": 1,
+        "multiGpuEfficiency": 1,
+        "maxSingleVram": 24,
+        "isCompatible": true,
+        "isBorderline": false,
+        "gpuConfig": "1x RTX 4090",
+        "tokensPerSecond": 61,
+        "powerConsumption": {
+          "totalPower": 438,
+          "powerDetails": [
+            {
+              "name": "RTX 4090",
+              "count": 1,
+              "power": 338,
+              "baseWatts": 338
+            }
+          ],
+          "systemOverhead": 100,
+          "utilizationFactor": 0.75
+        }
+      },
+      "warnings": [
+        "Recommended minimum 32GB RAM",
+        "KV cache q8_0 reduces cache VRAM (requires Flash Attention / OLLAMA_FLASH_ATTENTION)",
+        "Suggested context for ~24GB VRAM (Ollama VRAM tiers): 32k"
+      ],
+      "errors": {}
+    },
+    "7b-fp16-dgx-spark": {
+      "input": {
+        "parameters": "7",
+        "quantization": "16",
+        "contextLength": 4096,
+        "gpuConfigs": [
+          {
+            "gpuModel": "dgx-spark",
+            "count": "1"
+          }
+        ]
+      },
+      "results": {
+        "baseModelSizeGB": 13.0385160446167,
+        "activeWeightSizeGB": 13.0385160446167,
+        "kvCacheSize": 2.1203599723577935,
+        "multimodalOverheadGB": 0,
+        "totalGPURAM": 16.462727621436162,
+        "totalSystemRAM": 16.462727621436162,
+        "totalAvailableVRAM": 128,
+        "effectiveVRAM": 128,
+        "vramMargin": 111.53727237856384,
+        "minimumSystemRAM": 32,
+        "unifiedMemory": true,
+        "scheduleMode": "single",
+        "isMoE": false,
+        "activeParamsB": 7,
+        "totalParamsB": 7,
+        "kvCacheType": "f16",
+        "gqaRatio": 1,
+        "multiGpuEfficiency": 1,
+        "maxSingleVram": 128,
+        "isCompatible": true,
+        "isBorderline": false,
+        "gpuConfig": "1x DGX Spark (GB10)",
+        "tokensPerSecond": 15,
+        "powerConsumption": {
+          "totalPower": 205,
+          "powerDetails": [
+            {
+              "name": "DGX Spark (GB10)",
+              "count": 1,
+              "power": 105,
+              "baseWatts": 105
+            }
+          ],
+          "systemOverhead": 100,
+          "utilizationFactor": 0.75
+        }
+      },
+      "warnings": [
+        "Recommended minimum 32GB unified memory",
+        "Suggested context for ~128GB VRAM (Ollama VRAM tiers): 256k"
+      ],
+      "errors": {}
+    },
+    "7b-fp16-256k": {
+      "input": {
+        "parameters": "7",
+        "quantization": "16",
+        "contextLength": 262144,
+        "gpuConfigs": [
+          {
+            "gpuModel": "rtx5090",
+            "count": "1"
+          }
+        ]
+      },
+      "results": {
+        "baseModelSizeGB": 13.0385160446167,
+        "activeWeightSizeGB": 13.0385160446167,
+        "kvCacheSize": 135.70303823089878,
+        "multimodalOverheadGB": 0,
+        "totalGPURAM": 150.04540587997715,
+        "totalSystemRAM": 225.06810881996574,
+        "totalAvailableVRAM": 32,
+        "effectiveVRAM": 32,
+        "vramMargin": -118.04540587997715,
+        "minimumSystemRAM": 256,
+        "unifiedMemory": false,
+        "scheduleMode": "single",
+        "isMoE": false,
+        "activeParamsB": 7,
+        "totalParamsB": 7,
+        "kvCacheType": "f16",
+        "gqaRatio": 1,
+        "multiGpuEfficiency": 1,
+        "maxSingleVram": 32,
+        "isCompatible": false,
+        "isBorderline": false,
+        "gpuConfig": "1x RTX 5090",
+        "tokensPerSecond": 10,
+        "powerConsumption": {
+          "totalPower": 531,
+          "powerDetails": [
+            {
+              "name": "RTX 5090",
+              "count": 1,
+              "power": 431,
+              "baseWatts": 431
+            }
+          ],
+          "systemOverhead": 100,
+          "utilizationFactor": 0.75
+        }
+      },
+      "warnings": [
+        "Recommended minimum 256GB RAM",
+        "Extended context length requires significantly more VRAM and may impact performance",
+        "Long context with FP16 weights may require significant VRAM",
+        "Suggested context for ~32GB VRAM (Ollama VRAM tiers): 32k"
+      ],
+      "errors": {}
+    },
+    "cloud-preset": {
+      "input": {
+        "parameters": "",
+        "quantization": "16",
+        "contextLength": 4096,
+        "gpuConfigs": [
+          {
+            "gpuModel": "",
+            "count": "1"
+          }
+        ],
+        "presetId": "qwen3.5-cloud"
+      },
+      "results": {
+        "cloudOnly": true,
+        "isCompatible": true,
+        "isBorderline": false,
+        "totalGPURAM": 0,
+        "baseModelSizeGB": 0,
+        "kvCacheSize": 0,
+        "multimodalOverheadGB": 0,
+        "totalSystemRAM": 0,
+        "totalAvailableVRAM": 0,
+        "effectiveVRAM": 0,
+        "vramMargin": 0,
+        "minimumSystemRAM": 0,
+        "unifiedMemory": false,
+        "gpuConfig": "Ollama Cloud",
+        "tokensPerSecond": null,
+        "powerConsumption": {
+          "totalPower": 0,
+          "powerDetails": [],
+          "systemOverhead": 0,
+          "utilizationFactor": 0
+        },
+        "scheduleMode": "cloud",
+        "isMoE": false
+      },
+      "warnings": [
+        "This tag runs on Ollama Cloud — no local VRAM required"
       ],
       "errors": {}
     }

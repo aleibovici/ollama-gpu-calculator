@@ -64,6 +64,6 @@ Feel free to open issues or submit pull requests if you'd like to contribute to 
 
 ## Learn More
 
-To learn more about Ollama, visit the [official Ollama documentation](https://ollama.com/docs).
+To learn more about Ollama, visit the [official Ollama documentation](https://docs.ollama.com), including [hardware support](https://docs.ollama.com/gpu) and [context length](https://docs.ollama.com/context-length).
 
 For React documentation, check out the [React documentation](https://react.dev/).

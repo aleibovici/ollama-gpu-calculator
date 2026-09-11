@@ -1,55 +1,117 @@
 import React, { useState, useMemo, useEffect, useRef } from 'react';
 import ReactGA from 'react-ga4';
-import { runCalculator, formatGB, getCompatibilityTier } from './calculatorOutput';
+import {
+    runCalculator,
+    formatGB,
+    getCompatibilityTier,
+    suggestedContextForVram,
+    MODEL_PRESETS,
+    getModelPreset,
+} from './calculatorOutput';
 import CompatibilityBanner from './components/CompatibilityBanner';
 import GpuCombobox from './components/GpuCombobox';
+import { gpuSpecs } from './data/gpuSpecs';
 
 const QUANT_OPTIONS = [
     { value: '32', label: 'FP32', hint: '32-bit' },
-    { value: '16', label: 'FP16', hint: '16-bit' },
-    { value: '8',  label: 'INT8', hint: '8-bit'  },
-    { value: '4',  label: 'INT4', hint: '4-bit'  },
+    { value: '16', label: 'FP16', hint: 'BF16' },
+    { value: '8', label: 'Q8_0', hint: '8-bit' },
+    { value: '4.5', label: 'Q4_K_M', hint: '~4.5b' },
+    { value: '4', label: 'NVFP4', hint: 'MLX' },
+    { value: '4.25', label: 'MXFP4', hint: 'gpt-oss' },
 ];
 
-const CONTEXT_OPTIONS = [4096, 8192, 16384, 32768, 65536, 131072];
+const KV_CACHE_OPTIONS = [
+    { value: 'f16', label: 'f16', hint: 'default' },
+    { value: 'q8_0', label: 'q8_0', hint: '~½' },
+    { value: 'q4_0', label: 'q4_0', hint: '~¼' },
+];
+
+const CONTEXT_OPTIONS = [4096, 8192, 16384, 32768, 65536, 131072, 262144, 1048576];
 
 const NOTES = [
-    'Multi-GPU on consumer PCIe scales sub-linearly — expect roughly 0.7–0.75× per added GPU as cross-device traffic eats into throughput.',
-    'A small portion of VRAM is reserved for system operations and driver overhead.',
-    'Real-world performance depends on concurrent workloads and thermal headroom.',
+    'Estimates are ballpark — Ollama’s scheduler measures exact memory at load time; this tool does not.',
+    'Multi-GPU on consumer PCIe scales sub-linearly. Ollama prefers fitting on one GPU; split path is used only when needed.',
     'Leave roughly 1–2 GB of VRAM margin for stable inference under load.',
-    'Data-center GPUs (H100, A100, B200) are sold to enterprises, not consumers, but are widely available to rent by the hour from cloud providers.',
-    'Tokens/sec are approximate; actual numbers depend on model architecture and runtime.',
-    'On Apple Silicon, Ollama now runs on MLX (preview from 0.19) and uses the M5 GPU Neural Accelerators where present; the separate Neural Engine block is still not used for LLM inference.',
-    'Lower quantization (INT4/INT8) trades quality for memory and speed on limited hardware.',
-    'AMD GPUs run via ROCm on Linux and on recent Radeon RX / PRO cards on Windows; older or APU-class AMD GPUs on Windows fall back to the Vulkan backend.',
-    'Power figures account for utilization patterns during LLM inference, not peak TDP.',
+    'Data-center GPUs (H100, H200, B200) are enterprise / cloud-rentable; DGX Spark (GB10) is a 128 GB unified-memory workstation SKU.',
+    'Tokens/sec use a bandwidth-bound model. On Apple Silicon, Ollama’s MLX engine (NVFP4 / MTP / DFlash) can be faster — this calculator does not apply an MLX speedup multiplier.',
+    'KV cache defaults to f16; q8_0 / q4_0 via OLLAMA_KV_CACHE_TYPE require Flash Attention.',
+    'MoE presets: Required VRAM uses total weights; tok/s uses active parameters.',
+    'AMD: Linux ROCm v7 for listed Radeon / Instinct / Ryzen AI; older or unsupported AMD on Windows often uses the Vulkan backend. Intel Arc is Vulkan-oriented — enter VRAM via a close discrete SKU if needed.',
+    'NVIDIA driver floor is typically 550+ (570+ for older compute capabilities).',
+    'Cloud tags (e.g. *:cloud) run on Ollama Cloud — no local VRAM.',
+    'Power figures account for utilization during LLM inference, not peak TDP.',
 ];
 
 const statusLabel = {
-    ok:   'Compatible',
+    ok: 'Compatible',
     warn: 'Borderline',
-    bad:  'Insufficient',
+    bad: 'Insufficient',
 };
 
 const THEME_STORAGE_KEY = 'ogc-theme';
 
+function formatContextLabel(len) {
+    if (len >= 1048576) return `${len / 1048576}M tokens · ${len.toLocaleString()}`;
+    return `${len / 1024}k tokens · ${len.toLocaleString()}`;
+}
+
+function poolMaxVram(gpuConfigs) {
+    let max = 0;
+    for (const cfg of gpuConfigs) {
+        const spec = gpuSpecs[cfg.gpuModel];
+        if (spec && spec.vram > max) max = spec.vram;
+    }
+    return max;
+}
+
 const OllamaGPUCalculator = () => {
     const nextGpuRowId = useRef(2);
+    const [presetId, setPresetId] = useState('');
     const [parameters, setParameters] = useState('');
     const [quantization, setQuantization] = useState('16');
+    const [kvCacheType, setKvCacheType] = useState('f16');
     const [contextLength, setContextLength] = useState(4096);
     const [gpuConfigs, setGpuConfigs] = useState([{ id: 1, gpuModel: '', count: '1' }]);
     const [theme, setTheme] = useState(
         () => (document.documentElement.getAttribute('data-theme') === 'light' ? 'light' : 'dark')
     );
 
+    const selectedPreset = useMemo(() => getModelPreset(presetId), [presetId]);
+    const suggestedCtx = useMemo(() => {
+        const vram = poolMaxVram(gpuConfigs);
+        return vram > 0 ? suggestedContextForVram(vram) : null;
+    }, [gpuConfigs]);
+
     const { results, validationErrors, warnings } = useMemo(() => {
+        if (selectedPreset?.cloudOnly) {
+            const output = runCalculator({
+                parameters,
+                quantization,
+                contextLength,
+                gpuConfigs,
+                kvCacheType,
+                presetId,
+            });
+            return {
+                results: output.results,
+                validationErrors: output.errors,
+                warnings: output.warnings,
+            };
+        }
+
         if (!parameters.trim() && !gpuConfigs.some(c => c.gpuModel)) {
             return { results: null, validationErrors: {}, warnings: [] };
         }
         try {
-            const output = runCalculator({ parameters, quantization, contextLength, gpuConfigs });
+            const output = runCalculator({
+                parameters,
+                quantization,
+                contextLength,
+                gpuConfigs,
+                kvCacheType,
+                presetId: presetId || null,
+            });
             return {
                 results: output.results,
                 validationErrors: output.errors,
@@ -63,10 +125,10 @@ const OllamaGPUCalculator = () => {
                 warnings: [],
             };
         }
-    }, [parameters, quantization, contextLength, gpuConfigs]);
+    }, [parameters, quantization, contextLength, gpuConfigs, kvCacheType, presetId, selectedPreset]);
 
     useEffect(() => {
-        if (!results) return;
+        if (!results || results.cloudOnly) return;
         const paramCount = parseFloat(parameters);
         if (Number.isNaN(paramCount) || paramCount <= 0) return;
         ReactGA.event({
@@ -86,13 +148,38 @@ const OllamaGPUCalculator = () => {
         }
     }, [theme]);
 
+    const handlePresetChange = (id) => {
+        setPresetId(id);
+        if (!id) return;
+        const preset = getModelPreset(id);
+        if (!preset || preset.cloudOnly) {
+            ReactGA.event({ category: 'Settings', action: 'Select Preset', label: id });
+            return;
+        }
+        setParameters(String(preset.totalParamsB));
+        setQuantization(preset.defaultQuant);
+        const ctxOptions = CONTEXT_OPTIONS;
+        const nearest = ctxOptions.includes(preset.contextDefault)
+            ? preset.contextDefault
+            : ctxOptions.reduce((best, n) =>
+                Math.abs(n - preset.contextDefault) < Math.abs(best - preset.contextDefault) ? n : best
+            );
+        setContextLength(nearest);
+        ReactGA.event({ category: 'Settings', action: 'Select Preset', label: id });
+    };
+
     const handleQuantizationChange = (value) => {
         setQuantization(value);
-        ReactGA.event({ category: 'Settings', action: 'Change Quantization', label: `${value}-bit` });
+        ReactGA.event({ category: 'Settings', action: 'Change Quantization', label: value });
+    };
+
+    const handleKvCacheChange = (value) => {
+        setKvCacheType(value);
+        ReactGA.event({ category: 'Settings', action: 'Change KV Cache', label: value });
     };
 
     const handleContextLengthChange = (value) => {
-        setContextLength(parseInt(value));
+        setContextLength(parseInt(value, 10));
         ReactGA.event({ category: 'Settings', action: 'Change Context Length', label: `${value} tokens` });
     };
 
@@ -111,7 +198,7 @@ const OllamaGPUCalculator = () => {
     };
 
     const statusState = getCompatibilityTier(results);
-    const utilizationPct = results
+    const utilizationPct = results && !results.cloudOnly
         ? Math.min(100, Math.max(0, (results.totalGPURAM / Math.max(results.effectiveVRAM, 0.001)) * 100))
         : 0;
 
@@ -156,7 +243,7 @@ const OllamaGPUCalculator = () => {
 
                 <div className="iw-header-side">
                     <div className="iw-meta">
-                        REV <span>v2</span> · CALIB <span>2026.05</span><br />
+                        REV <span>v2</span> · CALIB <span>2026.09</span><br />
                         STATIC BUILD · GITHUB PAGES
                     </div>
                     <div className="iw-link-row">
@@ -167,7 +254,6 @@ const OllamaGPUCalculator = () => {
             </header>
 
             <div className="iw-bench">
-                {/* ----------- INPUT PANEL ----------- */}
                 <section className="iw-panel" aria-labelledby="inputs-heading">
                     <div className="iw-panel-header">
                         <h2 id="inputs-heading" className="iw-panel-title">01 · Configuration</h2>
@@ -181,6 +267,36 @@ const OllamaGPUCalculator = () => {
                         )}
 
                         <div className="iw-field">
+                            <label htmlFor="model-preset" className="iw-label">
+                                <span>Model Preset</span>
+                                <span className="iw-label-hint">optional</span>
+                            </label>
+                            <select
+                                id="model-preset"
+                                className="iw-select"
+                                value={presetId}
+                                onChange={(e) => handlePresetChange(e.target.value)}
+                            >
+                                <option value="">— custom / enter params —</option>
+                                {MODEL_PRESETS.map((p) => (
+                                    <option key={p.id} value={p.id}>
+                                        {p.cloudOnly ? `${p.label} · Ollama Cloud` : p.label}
+                                    </option>
+                                ))}
+                            </select>
+                            {selectedPreset?.cloudOnly && (
+                                <p className="iw-field-note" role="status">
+                                    Use Ollama Cloud — no local VRAM. Local math is disabled for this tag.
+                                </p>
+                            )}
+                            {selectedPreset && !selectedPreset.cloudOnly && selectedPreset.moe && (
+                                <p className="iw-field-note">
+                                    MoE: VRAM from {selectedPreset.totalParamsB}B total weights · tok/s from ~{selectedPreset.activeParamsB}B active
+                                </p>
+                            )}
+                        </div>
+
+                        <div className="iw-field">
                             <label htmlFor="parameters" className="iw-label">
                                 <span>Model Parameters</span>
                                 <span className="iw-label-hint">billions</span>
@@ -190,9 +306,15 @@ const OllamaGPUCalculator = () => {
                                 id="parameters"
                                 className="iw-input"
                                 value={parameters}
-                                onChange={(e) => setParameters(e.target.value)}
+                                onChange={(e) => {
+                                    setParameters(e.target.value);
+                                    if (presetId && !selectedPreset?.cloudOnly) setPresetId('');
+                                }}
                                 placeholder="e.g. 7 for a 7B model"
-                                min="0.1" max="200" step="0.1"
+                                min="0.1"
+                                max="2000"
+                                step="0.1"
+                                disabled={!!selectedPreset?.cloudOnly}
                             />
                             {validationErrors.parameters && (
                                 <p className="iw-field-error" role="alert">
@@ -254,9 +376,9 @@ const OllamaGPUCalculator = () => {
                         <div className="iw-field">
                             <label className="iw-label">
                                 <span>Quantization</span>
-                                <span className="iw-label-hint">precision</span>
+                                <span className="iw-label-hint">weight format</span>
                             </label>
-                            <div className="iw-segmented" role="radiogroup" aria-label="Quantization">
+                            <div className="iw-segmented iw-segmented--6" role="radiogroup" aria-label="Quantization">
                                 {QUANT_OPTIONS.map(opt => (
                                     <button
                                         key={opt.value}
@@ -265,6 +387,30 @@ const OllamaGPUCalculator = () => {
                                         aria-checked={quantization === opt.value}
                                         className={quantization === opt.value ? 'is-active' : ''}
                                         onClick={() => handleQuantizationChange(opt.value)}
+                                        disabled={!!selectedPreset?.cloudOnly}
+                                    >
+                                        {opt.label}
+                                        <small>{opt.hint}</small>
+                                    </button>
+                                ))}
+                            </div>
+                        </div>
+
+                        <div className="iw-field">
+                            <label className="iw-label">
+                                <span>KV Cache Type</span>
+                                <span className="iw-label-hint">OLLAMA_KV_CACHE_TYPE</span>
+                            </label>
+                            <div className="iw-segmented iw-segmented--3" role="radiogroup" aria-label="KV Cache Type">
+                                {KV_CACHE_OPTIONS.map(opt => (
+                                    <button
+                                        key={opt.value}
+                                        type="button"
+                                        role="radio"
+                                        aria-checked={kvCacheType === opt.value}
+                                        className={kvCacheType === opt.value ? 'is-active' : ''}
+                                        onClick={() => handleKvCacheChange(opt.value)}
+                                        disabled={!!selectedPreset?.cloudOnly}
                                     >
                                         {opt.label}
                                         <small>{opt.hint}</small>
@@ -276,23 +422,38 @@ const OllamaGPUCalculator = () => {
                         <div className="iw-field">
                             <label htmlFor="context-length" className="iw-label">
                                 <span>Context Window</span>
-                                <span className="iw-label-hint">{(contextLength / 1024)}k tokens</span>
+                                <span className="iw-label-hint">
+                                    {contextLength >= 1048576 ? `${contextLength / 1048576}M` : `${contextLength / 1024}k`} tokens
+                                </span>
                             </label>
                             <select
                                 id="context-length"
                                 className="iw-select"
                                 value={contextLength}
                                 onChange={(e) => handleContextLengthChange(e.target.value)}
+                                disabled={!!selectedPreset?.cloudOnly}
                             >
                                 {CONTEXT_OPTIONS.map(len => (
-                                    <option key={len} value={len}>{len / 1024}k tokens · {len.toLocaleString()}</option>
+                                    <option key={len} value={len}>{formatContextLabel(len)}</option>
                                 ))}
                             </select>
+                            {suggestedCtx && !selectedPreset?.cloudOnly && (
+                                <p className="iw-field-note">
+                                    Suggested for VRAM (~{poolMaxVram(gpuConfigs)}GB tier):{' '}
+                                    <button
+                                        type="button"
+                                        className="iw-inline-link"
+                                        onClick={() => handleContextLengthChange(String(suggestedCtx))}
+                                    >
+                                        {formatContextLabel(suggestedCtx)}
+                                    </button>
+                                    {' '}(Ollama context-length.md; FAQ default remains 4k)
+                                </p>
+                            )}
                         </div>
                     </div>
                 </section>
 
-                {/* ----------- READOUT PANEL ----------- */}
                 <section className="iw-panel iw-readout" aria-labelledby="readout-heading">
                     <div className="iw-panel-header">
                         <h2 id="readout-heading" className="iw-panel-title">02 · Live Readout</h2>
@@ -305,6 +466,29 @@ const OllamaGPUCalculator = () => {
                             <div className="iw-readout-empty-text">
                                 Enter model size and pick a GPU to begin
                             </div>
+                        </div>
+                    ) : results.cloudOnly ? (
+                        <div className="iw-fade-in">
+                            <div className="iw-status" data-state="ok">
+                                <div>
+                                    <span className="iw-status-dot" />
+                                    <span className="iw-status-label">Ollama Cloud</span>
+                                </div>
+                                <span className="iw-status-meta">no local VRAM</span>
+                            </div>
+                            <div className="iw-hero">
+                                <div className="iw-hero-inner">
+                                    <div className="iw-hero-label">Local VRAM</div>
+                                    <div className="iw-hero-value">
+                                        0
+                                        <span className="iw-hero-unit">gigabytes</span>
+                                    </div>
+                                    <div className="iw-hero-sub">
+                                        <div>Use Ollama Cloud — this tag does not run locally</div>
+                                    </div>
+                                </div>
+                            </div>
+                            <CompatibilityBanner results={results} warnings={warnings} />
                         </div>
                     ) : (
                         <div className="iw-fade-in">
@@ -326,10 +510,18 @@ const OllamaGPUCalculator = () => {
                                     <div className="iw-hero-sub">
                                         <div><span>Model</span> <b>{formatGB(results.baseModelSizeGB)} GB</b></div>
                                         <div><span>KV cache</span> <b>{formatGB(results.kvCacheSize)} GB</b></div>
+                                        {results.multimodalOverheadGB > 0 && (
+                                            <div><span>Multimodal</span> <b>{formatGB(results.multimodalOverheadGB)} GB</b></div>
+                                        )}
                                         <div><span>Margin</span> <b className="iw-signal-value" data-state={statusState}>
                                             {results.vramMargin >= 0 ? '+' : ''}{formatGB(results.vramMargin)} GB
                                         </b></div>
                                     </div>
+                                    {results.isMoE && (
+                                        <p className="iw-hero-moe">
+                                            MoE fit uses total weights · decode tok/s uses ~{results.activeParamsB}B active
+                                        </p>
+                                    )}
                                 </div>
                             </div>
 
@@ -369,7 +561,9 @@ const OllamaGPUCalculator = () => {
                                     <div className="iw-metric-value">
                                         {results.tokensPerSecond ?? '—'}<span className="iw-metric-unit">tok/s</span>
                                     </div>
-                                    <div className="iw-metric-detail">Estimated decode rate</div>
+                                    <div className="iw-metric-detail">
+                                        {results.scheduleMode === 'single' ? 'Single-GPU path' : 'Estimated decode rate'}
+                                    </div>
                                 </div>
 
                                 <div className="iw-metric">
@@ -392,7 +586,13 @@ const OllamaGPUCalculator = () => {
                                     <div className="iw-metric-value">
                                         {formatGB(results.effectiveVRAM)}<span className="iw-metric-unit">GB</span>
                                     </div>
-                                    <div className="iw-metric-detail">After driver/OS reservation</div>
+                                    <div className="iw-metric-detail">
+                                        {results.scheduleMode === 'single'
+                                            ? 'Best single GPU (fit-one-first)'
+                                            : results.scheduleMode === 'split'
+                                              ? 'After multi-GPU / driver haircut'
+                                              : 'Configured VRAM pool'}
+                                    </div>
                                 </div>
                             </div>
 
