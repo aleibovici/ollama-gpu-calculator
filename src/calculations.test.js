@@ -7,6 +7,7 @@ import {
     calculateRAMRequirements,
     calculateTokensPerSecond,
     calculatePowerConsumption,
+    calculateAll,
 } from './calculations';
 
 // Ground truth values below come from actual model configs (LLaMA 7B/13B/70B
@@ -151,6 +152,15 @@ describe('calculateRAMRequirements', () => {
         const split = calculateRAMRequirements(70, 16, 4096, [{ gpuModel: 'h100', count: '2' }]);
         expect(split.scheduleMode).toBe('split');
         expect(split.effectiveVRAM).toBeCloseTo(split.totalAvailableVRAM * 0.85, 5);
+    });
+
+    it('single-GPU VRAM shortfall is not labeled as a multi-GPU split', () => {
+        const r = calculateRAMRequirements(70, 4, 4096, [{ gpuModel: 'rtx4090', count: '1' }]);
+        expect(r.totalGPURAM).toBeGreaterThan(r.maxSingleVram);
+        expect(r.scheduleMode).toBe('single');
+        expect(r.multiGpuEfficiency).toBe(1);
+        expect(r.effectiveVRAM).toBeCloseTo(r.totalAvailableVRAM, 5);
+        expect(r.vramMargin).toBeLessThan(0);
     });
 
     it('ignores empty GPU slots', () => {
@@ -307,6 +317,23 @@ describe('calculatePowerConsumption', () => {
         ], 7, 16);
         const single = calculatePowerConsumption([{ gpuModel: 'rtx4090', count: '1' }], 7, 16);
         expect(withEmpty.totalPower).toBe(single.totalPower);
+    });
+
+    it('fit-one-first bills only the active GPU for power', () => {
+        const one = calculateAll(7, 16, 4096, [{ gpuModel: 'rtx4090', count: '1' }]);
+        const two = calculateAll(7, 16, 4096, [{ gpuModel: 'rtx4090', count: '2' }]);
+        expect(two.schedule.scheduleMode).toBe('single');
+        expect(two.power.totalPower).toBe(one.power.totalPower);
+        expect(two.power.powerDetails).toEqual(one.power.powerDetails);
+        expect(two.power.powerDetails.reduce((n, d) => n + d.count, 0)).toBe(1);
+    });
+
+    it('split schedule still bills every configured GPU', () => {
+        const one = calculateAll(70, 16, 4096, [{ gpuModel: 'h100', count: '1' }]);
+        const two = calculateAll(70, 16, 4096, [{ gpuModel: 'h100', count: '2' }]);
+        expect(two.schedule.scheduleMode).toBe('split');
+        expect(two.power.totalPower).toBeGreaterThan(one.power.totalPower);
+        expect(two.power.powerDetails.reduce((n, d) => n + d.count, 0)).toBe(2);
     });
 });
 

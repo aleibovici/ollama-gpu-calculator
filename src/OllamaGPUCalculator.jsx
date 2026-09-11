@@ -589,7 +589,9 @@ const OllamaGPUCalculator = () => {
                                     <div className="iw-metric-detail">
                                         {results.scheduleMode === 'single'
                                             ? 'Best single GPU (fit-one-first)'
-                                            : 'After multi-GPU / driver haircut'}
+                                            : results.scheduleMode === 'split'
+                                              ? 'After multi-GPU / driver haircut'
+                                              : 'Configured VRAM pool'}
                                     </div>
                                 </div>
                             </div>

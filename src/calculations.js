@@ -228,14 +228,17 @@ function isUnifiedMemorySetupFromActive(active) {
 }
 
 /**
- * Ollama prefers fitting on one GPU; otherwise it splits.
+ * Ollama prefers fitting on one GPU; otherwise it splits across cards.
  * Returns scheduleMode 'single' | 'split' | 'none'.
+ *
+ * A lone GPU that cannot hold the model stays on the single-GPU path
+ * (VRAM shortfall) — that is not a multi-GPU split.
  */
 function resolveSchedule(model, pool) {
     if (pool.totalGpuCount === 0) {
         return { scheduleMode: 'none', fittingGpu: null };
     }
-    if (model.totalGPURAM <= pool.maxSingleVram) {
+    if (model.totalGPURAM <= pool.maxSingleVram || pool.totalGpuCount === 1) {
         return { scheduleMode: 'single', fittingGpu: pool.bestSingle };
     }
     return { scheduleMode: 'split', fittingGpu: null };
@@ -306,7 +309,15 @@ function computeTokensPerSecondFromMetrics(model, pool, schedule) {
     return Math.round((effectiveBandwidth * DECODE_BANDWIDTH_EFFICIENCY) / bytesPerToken);
 }
 
-function computePowerFromActive(active, paramCount, quantBits) {
+function resolvePowerActive(active, schedule = null) {
+    // Fit-one-first: only the card that holds the model draws inference power.
+    if (schedule?.scheduleMode === 'single' && schedule.fittingGpu) {
+        return [{ ...schedule.fittingGpu, count: 1 }];
+    }
+    return active;
+}
+
+function computePowerFromActive(active, paramCount, quantBits, schedule = null) {
     const getBaseSystemOverhead = (p) => {
         if (p <= 3) return 75;
         if (p <= 7) return 100;
@@ -315,11 +326,12 @@ function computePowerFromActive(active, paramCount, quantBits) {
     };
 
     const utilizationFactor = getUtilizationFactor(quantBits);
+    const billed = resolvePowerActive(active, schedule);
     const powerDetails = [];
     let basePower = 0;
     let totalGpuCount = 0;
 
-    for (const { count, spec } of active) {
+    for (const { count, spec } of billed) {
         const gpuPower = Math.round(spec.tdp * utilizationFactor);
         const rowPower = gpuPower * count;
         basePower += rowPower;
@@ -362,7 +374,7 @@ export function calculateAll(paramCount, quantBits, contextLength, gpuConfigs, o
     return {
         ram: buildRamResult(model, pool, active, quantBits, schedule),
         tokensPerSecond: computeTokensPerSecondFromMetrics(model, pool, schedule) ?? 0,
-        power: computePowerFromActive(active, paramCount, quantBits),
+        power: computePowerFromActive(active, paramCount, quantBits, schedule),
         active,
         schedule,
     };

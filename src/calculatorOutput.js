@@ -133,7 +133,7 @@ export function buildWarnings({
         warnings.push(
             'Model fits on one GPU — Ollama prefers a single-GPU path (pooled multi-GPU split not required)'
         );
-    } else if (results.scheduleMode === 'split') {
+    } else if (results.scheduleMode === 'split' && totalGpuCount > 1) {
         warnings.push(
             'Model exceeds a single GPU — estimate assumes a split across GPUs with PCIe overhead (ballpark, not Ollama’s measured scheduler)'
         );

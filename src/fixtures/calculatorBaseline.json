@@ -325,22 +325,16 @@
         "gpuConfig": "1x H100 + 1x A2",
         "tokensPerSecond": 188,
         "powerConsumption": {
-          "totalPower": 724,
+          "totalPower": 625,
           "powerDetails": [
             {
               "name": "H100",
               "count": 1,
               "power": 525,
               "baseWatts": 525
-            },
-            {
-              "name": "A2",
-              "count": 1,
-              "power": 45,
-              "baseWatts": 45
             }
           ],
-          "systemOverhead": 154,
+          "systemOverhead": 100,
           "utilizationFactor": 0.75
         }
       },
@@ -393,14 +387,8 @@
         "gpuConfig": "1x RTX 4090 + 1x RTX 4090",
         "tokensPerSecond": 57,
         "powerConsumption": {
-          "totalPower": 835,
+          "totalPower": 438,
           "powerDetails": [
-            {
-              "name": "RTX 4090",
-              "count": 1,
-              "power": 338,
-              "baseWatts": 338
-            },
             {
               "name": "RTX 4090",
               "count": 1,
@@ -408,7 +396,7 @@
               "baseWatts": 338
             }
           ],
-          "systemOverhead": 159,
+          "systemOverhead": 100,
           "utilizationFactor": 0.75
         }
       },
@@ -443,7 +431,7 @@
         "vramMargin": -24.268127206803065,
         "minimumSystemRAM": 128,
         "unifiedMemory": false,
-        "scheduleMode": "split",
+        "scheduleMode": "single",
         "isMoE": false,
         "activeParamsB": 7,
         "totalParamsB": 7,
@@ -471,7 +459,6 @@
       },
       "warnings": [
         "Recommended minimum 128GB RAM",
-        "Model exceeds a single GPU — estimate assumes a split across GPUs with PCIe overhead (ballpark, not Ollama’s measured scheduler)",
         "Extended context length requires significantly more VRAM and may impact performance",
         "Long context with FP16 weights may require significant VRAM",
         "Suggested context for ~24GB VRAM (Ollama VRAM tiers): 32k"
@@ -559,7 +546,7 @@
         "vramMargin": -5.462727621436162,
         "minimumSystemRAM": 32,
         "unifiedMemory": false,
-        "scheduleMode": "split",
+        "scheduleMode": "single",
         "isMoE": false,
         "activeParamsB": 7,
         "totalParamsB": 7,
@@ -587,7 +574,6 @@
       },
       "warnings": [
         "Recommended minimum 32GB RAM",
-        "Model exceeds a single GPU — estimate assumes a split across GPUs with PCIe overhead (ballpark, not Ollama’s measured scheduler)",
         "Pascal architecture may have limited support for newer optimizations"
       ],
       "errors": {}
@@ -616,7 +602,7 @@
         "vramMargin": -21.68442132469562,
         "minimumSystemRAM": 64,
         "unifiedMemory": false,
-        "scheduleMode": "split",
+        "scheduleMode": "single",
         "isMoE": false,
         "activeParamsB": 70,
         "totalParamsB": 70,
@@ -644,7 +630,6 @@
       },
       "warnings": [
         "Recommended minimum 64GB RAM",
-        "Model exceeds a single GPU — estimate assumes a split across GPUs with PCIe overhead (ballpark, not Ollama’s measured scheduler)",
         "Models larger than 13B parameters may require multiple GPUs for optimal performance",
         "4-bit class quantization (Q4_K_M / NVFP4 / MXFP4) trades quality for memory and speed",
         "Suggested context for ~24GB VRAM (Ollama VRAM tiers): 32k"
@@ -743,16 +728,16 @@
         "gpuConfig": "3x RTX 4090",
         "tokensPerSecond": 57,
         "powerConsumption": {
-          "totalPower": 1232,
+          "totalPower": 438,
           "powerDetails": [
             {
               "name": "RTX 4090",
-              "count": 3,
-              "power": 1014,
+              "count": 1,
+              "power": 338,
               "baseWatts": 338
             }
           ],
-          "systemOverhead": 218,
+          "systemOverhead": 100,
           "utilizationFactor": 0.75
         }
       },
@@ -804,22 +789,16 @@
         "gpuConfig": "1x Apple M3 Max + 1x RTX 4090",
         "tokensPerSecond": 22,
         "powerConsumption": {
-          "totalPower": 552,
+          "totalPower": 169,
           "powerDetails": [
             {
               "name": "Apple M3 Max",
               "count": 1,
               "power": 69,
               "baseWatts": 69
-            },
-            {
-              "name": "RTX 4090",
-              "count": 1,
-              "power": 338,
-              "baseWatts": 338
             }
           ],
-          "systemOverhead": 145,
+          "systemOverhead": 100,
           "utilizationFactor": 0.75
         }
       },
@@ -1090,7 +1069,7 @@
         "vramMargin": -118.04540587997715,
         "minimumSystemRAM": 256,
         "unifiedMemory": false,
-        "scheduleMode": "split",
+        "scheduleMode": "single",
         "isMoE": false,
         "activeParamsB": 7,
         "totalParamsB": 7,
@@ -1118,7 +1097,6 @@
       },
       "warnings": [
         "Recommended minimum 256GB RAM",
-        "Model exceeds a single GPU — estimate assumes a split across GPUs with PCIe overhead (ballpark, not Ollama’s measured scheduler)",
         "Extended context length requires significantly more VRAM and may impact performance",
         "Long context with FP16 weights may require significant VRAM",
         "Suggested context for ~32GB VRAM (Ollama VRAM tiers): 32k"
