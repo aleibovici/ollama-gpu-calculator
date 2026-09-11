@@ -22,6 +22,11 @@ const scenarios = [
     { id: '3gpu-scaling-warning', parameters: '7', quantization: '16', contextLength: 4096, gpuConfigs: [{ gpuModel: 'rtx4090', count: '3' }] },
     { id: 'mixed-unified-discrete', parameters: '7', quantization: '16', contextLength: 4096, gpuConfigs: [{ gpuModel: 'm3-max', count: '1' }, { gpuModel: 'rtx4090', count: '1' }] },
     { id: 'empty-slot-ignored', parameters: '7', quantization: '16', contextLength: 4096, gpuConfigs: [{ gpuModel: '', count: '1' }, { gpuModel: 'rtx4090', count: '1' }] },
+    { id: 'moe-gemma4-26b-rtx5090', parameters: '25.2', quantization: '4.5', contextLength: 4096, gpuConfigs: [{ gpuModel: 'rtx5090', count: '1' }], presetId: 'gemma4-26b', kvCacheType: 'f16' },
+    { id: '7b-kv-q8-rtx4090', parameters: '7', quantization: '16', contextLength: 4096, gpuConfigs: [{ gpuModel: 'rtx4090', count: '1' }], kvCacheType: 'q8_0' },
+    { id: '7b-fp16-dgx-spark', parameters: '7', quantization: '16', contextLength: 4096, gpuConfigs: [{ gpuModel: 'dgx-spark', count: '1' }] },
+    { id: '7b-fp16-256k', parameters: '7', quantization: '16', contextLength: 262144, gpuConfigs: [{ gpuModel: 'rtx5090', count: '1' }] },
+    { id: 'cloud-preset', parameters: '', quantization: '16', contextLength: 4096, gpuConfigs: [{ gpuModel: '', count: '1' }], presetId: 'qwen3.5-cloud' },
 ];
 
 const validationCases = [
@@ -41,6 +46,8 @@ for (const s of scenarios) {
             quantization: s.quantization,
             contextLength: s.contextLength,
             gpuConfigs: s.gpuConfigs,
+            ...(s.kvCacheType ? { kvCacheType: s.kvCacheType } : {}),
+            ...(s.presetId ? { presetId: s.presetId } : {}),
         },
         results,
         warnings,

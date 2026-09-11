@@ -88,10 +88,26 @@ describe('calculateKvCacheGB', () => {
         expect(kv8k / kv4k).toBeCloseTo(2, 2);
     });
 
-    it('regression: KV cache does NOT scale with weight quantization', () => {
-        // calculateKvCacheGB doesn't take quantBits — it's always FP16.
-        // Confirm the function signature / behavior hasn't regressed.
-        expect(calculateKvCacheGB.length).toBe(2);
+    it('regression: default KV cache does NOT scale with weight quantization', () => {
+        // Default KV type remains f16 regardless of weight bits.
+        expect(calculateKvCacheGB.length).toBeGreaterThanOrEqual(2);
+        const a = calculateKvCacheGB(7, 4096);
+        const b = calculateKvCacheGB(7, 4096, { kvCacheType: 'f16' });
+        expect(a).toBeCloseTo(b, 6);
+    });
+
+    it('KV q8_0 is ~½ of f16; q4_0 is ~¼', () => {
+        const f16 = calculateKvCacheGB(7, 4096, { kvCacheType: 'f16' });
+        const q8 = calculateKvCacheGB(7, 4096, { kvCacheType: 'q8_0' });
+        const q4 = calculateKvCacheGB(7, 4096, { kvCacheType: 'q4_0' });
+        expect(q8 / f16).toBeCloseTo(0.5, 5);
+        expect(q4 / f16).toBeCloseTo(0.25, 5);
+    });
+
+    it('GQA ratio shrinks KV cache linearly', () => {
+        const mha = calculateKvCacheGB(7, 4096, { gqaRatio: 1 });
+        const gqa = calculateKvCacheGB(7, 4096, { gqaRatio: 0.125 });
+        expect(gqa / mha).toBeCloseTo(0.125, 5);
     });
 
     it('regression: KV cache for 7B @ 4k is NOT the old buggy ~1.04 GB', () => {
@@ -116,20 +132,25 @@ describe('calculateRAMRequirements', () => {
     it('vramMargin is consistent with isCompatible (both use effective VRAM)', () => {
         // Mixed multi-GPU setup: 2x RTX 4090.
         const r = calculateRAMRequirements(7, 16, 4096, [{ gpuModel: 'rtx4090', count: '2' }]);
-        // effectiveVRAM = 48 * 0.9 = 43.2. vramMargin = effective - totalGPURAM.
         expect(r.vramMargin).toBeCloseTo(r.effectiveVRAM - r.totalGPURAM, 6);
-        // vramMargin sign should match the compatibility verdict.
         const compatible = r.effectiveVRAM >= r.totalGPURAM;
         expect(compatible).toBe(r.vramMargin >= 0);
     });
 
-    it('multi-GPU efficiency kicks in at 2+ GPUs', () => {
+    it('prefers single-GPU path when the model fits on one card', () => {
         const one = calculateRAMRequirements(7, 16, 4096, [{ gpuModel: 'rtx4090', count: '1' }]);
         const two = calculateRAMRequirements(7, 16, 4096, [{ gpuModel: 'rtx4090', count: '2' }]);
-        // Single GPU: no penalty.
-        expect(one.effectiveVRAM).toBeCloseTo(one.totalAvailableVRAM, 5);
-        // Multi GPU: 0.9x penalty.
-        expect(two.effectiveVRAM).toBeCloseTo(two.totalAvailableVRAM * 0.9, 5);
+        expect(one.scheduleMode).toBe('single');
+        expect(two.scheduleMode).toBe('single');
+        // Fit-one-first: effective VRAM is the largest single GPU, not the pool.
+        expect(two.effectiveVRAM).toBeCloseTo(24, 5);
+        expect(one.effectiveVRAM).toBeCloseTo(24, 5);
+    });
+
+    it('split path applies a multi-GPU VRAM haircut when the model exceeds one GPU', () => {
+        const split = calculateRAMRequirements(70, 16, 4096, [{ gpuModel: 'h100', count: '2' }]);
+        expect(split.scheduleMode).toBe('split');
+        expect(split.effectiveVRAM).toBeCloseTo(split.totalAvailableVRAM * 0.85, 5);
     });
 
     it('ignores empty GPU slots', () => {
@@ -189,24 +210,43 @@ describe('calculateTokensPerSecond', () => {
         expect(tps).toBeLessThan(50);
     });
 
-    it('multi-GPU scales sub-linearly (2 GPUs give < 2× TPS)', () => {
+    it('when model fits one GPU, extra identical GPUs do not inflate tok/s', () => {
         const one = calculateTokensPerSecond(7, 16, 4096, [{ gpuModel: 'rtx4090', count: '1' }]);
         const two = calculateTokensPerSecond(7, 16, 4096, [{ gpuModel: 'rtx4090', count: '2' }]);
-        expect(two).toBeGreaterThan(one);
-        expect(two).toBeLessThan(2 * one);
-        // But it should be better than no scaling.
-        expect(two).toBeGreaterThan(one * 1.5);
+        expect(two).toBe(one);
     });
 
-    it('heterogeneous setup bottlenecks on the slowest GPU', () => {
-        // H100 (3350 GB/s) + A2 (200 GB/s) should be dramatically slower than
-        // 2x H100, despite H100 appearing in both configs.
-        const twoH100 = calculateTokensPerSecond(7, 16, 4096, [{ gpuModel: 'h100', count: '2' }]);
-        const hetero = calculateTokensPerSecond(7, 16, 4096, [
+    it('split multi-GPU scales sub-linearly when the model exceeds one GPU', () => {
+        const one = calculateTokensPerSecond(70, 16, 4096, [{ gpuModel: 'h100', count: '1' }]);
+        const two = calculateTokensPerSecond(70, 16, 4096, [{ gpuModel: 'h100', count: '2' }]);
+        // 70B FP16 does not fit one H100 → split path.
+        expect(two).toBeGreaterThan(one);
+        expect(two).toBeLessThan(2 * one);
+    });
+
+    it('heterogeneous split bottlenecks on the slowest GPU', () => {
+        // Force split with a huge model so both GPUs are used.
+        const twoH100 = calculateTokensPerSecond(70, 16, 4096, [{ gpuModel: 'h100', count: '2' }]);
+        const hetero = calculateTokensPerSecond(70, 16, 4096, [
             { gpuModel: 'h100', count: '1' },
             { gpuModel: 'a2', count: '1' },
         ]);
         expect(hetero).toBeLessThan(twoH100 / 2);
+    });
+
+    it('MoE tok/s uses active params while VRAM uses total weights', () => {
+        const dense = calculateTokensPerSecond(30, 4.5, 4096, [{ gpuModel: 'rtx4090', count: '1' }]);
+        const moe = calculateTokensPerSecond(30, 4.5, 4096, [{ gpuModel: 'rtx4090', count: '1' }], {
+            totalParamsB: 30,
+            activeParamsB: 3,
+        });
+        const ram = calculateRAMRequirements(30, 4.5, 4096, [{ gpuModel: 'rtx4090', count: '1' }], {
+            totalParamsB: 30,
+            activeParamsB: 3,
+        });
+        expect(moe).toBeGreaterThan(dense);
+        expect(ram.baseModelSizeGB).toBeCloseTo(calculateBaseModelSizeGB(30, 4.5), 5);
+        expect(ram.isMoE).toBe(true);
     });
 
     it('regression: TPS is memory-bandwidth-bound, not compute-bound', () => {
@@ -304,12 +344,28 @@ describe('Apple Silicon unified memory', () => {
         }
     });
 
-    it('no discrete GPU is flagged unifiedMemory', () => {
-        for (const [key, gpu] of Object.entries(gpuSpecs)) {
-            if (gpu.generation !== 'Apple Silicon') {
-                expect(gpu.unifiedMemory, `${key} should NOT be unifiedMemory`).toBeFalsy();
-            }
+    it('DGX Spark and Ryzen AI are unified memory', () => {
+        expect(gpuSpecs['dgx-spark'].unifiedMemory).toBe(true);
+        expect(gpuSpecs['ryzen-ai-max-395'].unifiedMemory).toBe(true);
+    });
+
+    it('discrete consumer NVIDIA GPUs are not unifiedMemory', () => {
+        for (const key of ['rtx4090', 'rtx5090', 'h100', 'b200']) {
+            expect(gpuSpecs[key].unifiedMemory, `${key} should NOT be unifiedMemory`).toBeFalsy();
         }
+    });
+});
+
+describe('new hardware catalog', () => {
+    it('includes RTX 50 / H200 / B200 / DGX Spark', () => {
+        for (const key of ['rtx5090', 'rtx5080', 'rtx5070', 'h200', 'b200', 'dgx-spark']) {
+            expect(gpuSpecs[key], key).toBeTruthy();
+            expect(gpuSpecs[key].vram).toBeGreaterThan(0);
+            expect(gpuSpecs[key].bandwidth).toBeGreaterThan(0);
+        }
+        expect(gpuSpecs['dgx-spark'].vram).toBe(128);
+        expect(gpuSpecs.b200.vram).toBe(180);
+        expect(gpuSpecs.h200.vram).toBe(141);
     });
 });
 

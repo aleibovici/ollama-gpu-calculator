@@ -2,13 +2,26 @@ import { formatGB, getCompatibilityTier } from '../calculatorOutput';
 
 const INSUFFICIENT_SUGGESTIONS = [
     'Add another GPU to the configuration.',
-    'Drop to a smaller quantization (e.g. INT8 or INT4).',
+    'Drop to a smaller quantization (e.g. Q8_0 or Q4_K_M).',
     'Reduce the context window.',
     'Pick a GPU with larger VRAM.',
 ];
 
 const CompatibilityBanner = ({ results, warnings }) => {
     if (!results) return null;
+    if (results.cloudOnly) {
+        return (
+            <div className="iw-advisory">
+                <div className="iw-advisory-title">Advisory · Ollama Cloud</div>
+                <ul>
+                    {(warnings && warnings.length ? warnings : ['Use Ollama Cloud — no local VRAM']).map((text, i) => (
+                        <li key={i}>{text}</li>
+                    ))}
+                </ul>
+            </div>
+        );
+    }
+
     const variant = getCompatibilityTier(results);
 
     const items = [];

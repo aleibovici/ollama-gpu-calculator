@@ -16,6 +16,7 @@ import {
     buildWarnings,
     validateCalculatorInputs,
     parseQuantBits,
+    getModelPreset,
 } from './calculatorOutput';
 import { calculateAll } from './calculations';
 
@@ -43,24 +44,42 @@ describe('calculator baseline — full runCalculator output', () => {
 describe('calculator baseline — decomposed API matches runCalculator', () => {
     for (const [id, fixture] of Object.entries(baseline.scenarios)) {
         it(`${id} (compute + warnings)`, () => {
+            const preset = getModelPreset(fixture.input.presetId);
+            if (preset?.cloudOnly) {
+                const full = runCalculator(fixture.input);
+                expect(full.results).toEqual(fixture.results);
+                expect(full.warnings).toEqual(fixture.warnings);
+                return;
+            }
+
             const validation = validateCalculatorInputs({
                 parameters: fixture.input.parameters,
                 gpuConfigs: fixture.input.gpuConfigs,
             });
             expect(validation.valid).toBe(true);
 
+            const options = {
+                kvCacheType: fixture.input.kvCacheType ?? 'f16',
+                totalParamsB: validation.paramCount,
+                activeParamsB: preset?.activeParamsB ?? validation.paramCount,
+                gqaRatio: preset?.gqaRatio ?? 1,
+                multimodalOverheadGB: preset?.multimodalOverheadGB ?? 0,
+            };
+
             const results = computeCalculatorResults({
                 paramCount: validation.paramCount,
                 quantBits: parseQuantBits(fixture.input.quantization),
                 contextLength: fixture.input.contextLength,
                 gpuConfigs: fixture.input.gpuConfigs,
+                options,
             });
 
             const { active } = calculateAll(
                 validation.paramCount,
                 parseQuantBits(fixture.input.quantization),
                 fixture.input.contextLength,
-                fixture.input.gpuConfigs
+                fixture.input.gpuConfigs,
+                options
             );
 
             const warnings = buildWarnings({
@@ -69,6 +88,8 @@ describe('calculator baseline — decomposed API matches runCalculator', () => {
                 contextLength: fixture.input.contextLength,
                 active,
                 results,
+                options,
+                preset,
             });
 
             expect(results).toEqual(fixture.results);
@@ -96,6 +117,10 @@ describe('calculator baseline — output shape invariants', () => {
     it('compatibility flags agree with numeric margin', () => {
         for (const fixture of Object.values(baseline.scenarios)) {
             const { results } = fixture;
+            if (results.cloudOnly) {
+                expect(results.isCompatible).toBe(true);
+                continue;
+            }
             expect(results.isCompatible).toBe(results.effectiveVRAM >= results.totalGPURAM);
             expect(results.isBorderline).toBe(results.vramMargin > 0 && results.vramMargin < 2);
         }
