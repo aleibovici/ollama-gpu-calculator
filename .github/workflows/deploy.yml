@@ -23,8 +23,6 @@ jobs:
 
       - name: Build
         run: bun run build
-        env:
-          VITE_GA_MEASUREMENT_ID: ${{ secrets.VITE_GA_MEASUREMENT_ID }}
 
       - name: Deploy to GitHub Pages
         uses: peaceiris/actions-gh-pages@v4
