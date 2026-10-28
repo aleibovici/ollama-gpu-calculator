@@ -93,3 +93,19 @@ describe('quantLabel', () => {
         expect(quantLabel('4.25')).toBe('MXFP4');
     });
 });
+
+describe('MODEL_PRESETS data', () => {
+    it('has unique ids and a source link for every preset', () => {
+        const ids = MODEL_PRESETS.map((p) => p.id);
+        expect(new Set(ids).size).toBe(ids.length);
+        for (const p of MODEL_PRESETS) expect(p.sourceUrl).toMatch(/^https:\/\//);
+    });
+
+    it('gives every local preset real parameter counts', () => {
+        for (const p of MODEL_PRESETS.filter((x) => !x.cloudOnly)) {
+            expect(p.totalParamsB).toBeGreaterThan(0);
+            expect(p.activeParamsB).toBeGreaterThan(0);
+            expect(p.activeParamsB).toBeLessThanOrEqual(p.totalParamsB);
+        }
+    });
+});
