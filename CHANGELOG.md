@@ -14,6 +14,11 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 - Dependabot updates for Bun dependencies and GitHub Actions.
 - ESLint (flat config with React Hooks rules) and a `lint` script, run in CI.
 
+### Fixed
+
+- `minimax-m2` preset listed an 8B local model that never existed on Ollama (MiniMax-M2 was a 230B cloud-only model, retired June 2026). Replaced with the cloud-only `minimax-m3:cloud`.
+- `glm-5 9b` preset described a model that doesn't exist (GLM-5 is a 744B cloud-only model, retired July 2026). Replaced with `glm-4.7-flash` (30B MoE, 3B active), Ollama's current local GLM model.
+
 ### Changed
 
 - The deploy workflow now runs tests and installs from the frozen lockfile before publishing.
