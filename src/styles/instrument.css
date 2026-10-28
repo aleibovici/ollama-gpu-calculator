@@ -612,7 +612,7 @@ body {
 }
 
 /* ----------------------------------------------------------
-   COMBOBOX — searchable GPU picker
+   COMBOBOX — searchable GPU and model pickers
    ---------------------------------------------------------- */
 .iw-combobox {
   position: relative;
@@ -1441,4 +1441,12 @@ tr[data-state="bad"] .iw-fit-num { color: var(--ink-3); }
 .iw-share-btn[data-state="failed"] {
   color: var(--signal-warn);
   border-color: var(--signal-warn);
+}
+
+/* Let long names (e.g. MoE model labels) wrap instead of truncating on phones. */
+@media (max-width: 480px) {
+  .iw-combobox-option-name {
+    white-space: normal;
+    overflow: visible;
+  }
 }
