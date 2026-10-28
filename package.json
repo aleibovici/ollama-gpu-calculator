@@ -30,7 +30,7 @@
     "@radix-ui/react-label": "^2.1.17",
     "@radix-ui/react-select": "^2.4.1",
     "@radix-ui/react-slider": "^1.6.1",
-    "@testing-library/jest-dom": "^6.9.1",
+    "@testing-library/jest-dom": "^7.0.1",
     "@testing-library/react": "^16.3.3",
     "@testing-library/user-event": "^14.6.8",
     "lucide-react": "^0.454.0",
