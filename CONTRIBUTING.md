@@ -74,6 +74,8 @@ Please link the vendor's official spec page in your PR. Use a reputable database
 
 ## Adding a model preset
 
+Only add models that run locally. Ollama Cloud tags (`:cloud`) don't use your GPU, so they don't belong in a GPU calculator.
+
 Presets live in [`src/data/modelPresets.js`](src/data/modelPresets.js). Copy a similar entry and edit it:
 
 | Field | Meaning |
@@ -88,8 +90,7 @@ Presets live in [`src/data/modelPresets.js`](src/data/modelPresets.js). Copy a s
 | `modalities` | For example `['text']` or `['text', 'vision']` |
 | `multimodalOverheadGB` | Extra GB for vision or audio encoders (0 for text-only) |
 | `gqaRatio` | KV heads ÷ query heads (1 for standard multi-head attention) |
-| `engineHint` | `gguf`, `mlx` or `cloud` |
-| `cloudOnly` | `true` for Ollama Cloud tags. These skip local VRAM math. |
+| `engineHint` | `gguf` or `mlx` |
 | `sourceUrl` | **Required.** A link to the model's page on [ollama.com/library](https://ollama.com/library) or its model card. |
 
 ## Calculator baseline tests

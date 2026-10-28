@@ -26,7 +26,6 @@ const scenarios = [
     { id: '7b-kv-q8-rtx4090', parameters: '7', quantization: '16', contextLength: 4096, gpuConfigs: [{ gpuModel: 'rtx4090', count: '1' }], kvCacheType: 'q8_0' },
     { id: '7b-fp16-dgx-spark', parameters: '7', quantization: '16', contextLength: 4096, gpuConfigs: [{ gpuModel: 'dgx-spark', count: '1' }] },
     { id: '7b-fp16-256k', parameters: '7', quantization: '16', contextLength: 262144, gpuConfigs: [{ gpuModel: 'rtx5090', count: '1' }] },
-    { id: 'cloud-preset', parameters: '', quantization: '16', contextLength: 4096, gpuConfigs: [{ gpuModel: '', count: '1' }], presetId: 'qwen3.5-cloud' },
 ];
 
 const validationCases = [

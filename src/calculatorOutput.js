@@ -40,17 +40,12 @@ export function formatGB(gb) {
 /** Shared ok | warn | bad tier for status readout and advisory banner. */
 export function getCompatibilityTier(results) {
     if (!results) return null;
-    if (results.cloudOnly) return 'ok';
     if (results.isCompatible && !results.isBorderline) return 'ok';
     if (results.isBorderline) return 'warn';
     return 'bad';
 }
 
-export function validateCalculatorInputs({ parameters, gpuConfigs, cloudOnly = false }) {
-    if (cloudOnly) {
-        return { valid: true, errors: {}, paramCount: 0, cloudOnly: true };
-    }
-
+export function validateCalculatorInputs({ parameters, gpuConfigs }) {
     const paramCount = parseFloat(parameters);
     const paramsValid = parameters.trim() !== '' && !Number.isNaN(paramCount) && paramCount > 0;
 
@@ -133,11 +128,6 @@ export function buildWarnings({
     const totalVram = active.reduce((n, { count, spec }) => n + spec.vram * count, 0);
 
     const warnings = [];
-
-    if (results.cloudOnly) {
-        warnings.push('This tag runs on Ollama Cloud — no local VRAM required');
-        return warnings;
-    }
 
     if (results.minimumSystemRAM) {
         const memKind = results.unifiedMemory ? 'unified memory' : 'RAM';
@@ -238,41 +228,6 @@ export function runCalculator({
 }) {
     const preset = getModelPreset(presetId);
 
-    if (preset?.cloudOnly) {
-        return {
-            results: {
-                cloudOnly: true,
-                isCompatible: true,
-                isBorderline: false,
-                totalGPURAM: 0,
-                baseModelSizeGB: 0,
-                kvCacheSize: 0,
-                multimodalOverheadGB: 0,
-                totalSystemRAM: 0,
-                totalAvailableVRAM: 0,
-                effectiveVRAM: 0,
-                vramMargin: 0,
-                minimumSystemRAM: 0,
-                unifiedMemory: false,
-                gpuConfig: 'Ollama Cloud',
-                tokensPerSecond: null,
-                powerConsumption: { totalPower: 0, powerDetails: [], systemOverhead: 0, utilizationFactor: 0 },
-                scheduleMode: 'cloud',
-                isMoE: false,
-            },
-            errors: {},
-            warnings: buildWarnings({
-                paramCount: 0,
-                quantBits: 16,
-                contextLength,
-                active: [],
-                results: { cloudOnly: true },
-                preset,
-            }),
-            preset,
-        };
-    }
-
     const validation = validateCalculatorInputs({ parameters, gpuConfigs });
     if (!validation.valid) {
         return { results: null, errors: validation.errors, warnings: [], preset };
@@ -312,7 +267,7 @@ export function runCalculator({
 const TIER_ORDER = { ok: 0, warn: 1, bad: 2 };
 
 /**
- * "What can my GPU run?" — evaluate every local preset against one GPU setup.
+ * "What can my GPU run?" — evaluate every preset against one GPU setup.
  * Each preset runs at its default quantization, with the user's context
  * (capped at the preset's max) and KV cache type. Rows are sorted: fits first,
  * then borderline, then won't fit; largest required VRAM first within a tier.
@@ -327,7 +282,6 @@ export function buildFitTable({
 
     const rows = [];
     for (const preset of presets) {
-        if (preset.cloudOnly) continue;
         const ctx = snapContextLength(Math.min(contextLength, preset.contextMax ?? contextLength));
         const output = runCalculator({
             parameters: String(preset.totalParamsB),

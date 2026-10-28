@@ -21,11 +21,9 @@ describe('buildFitTable', () => {
         expect(buildFitTable({ gpuConfigs: [{ gpuModel: 'rtx4090', count: '0' }], contextLength: 4096 })).toEqual([]);
     });
 
-    it('includes every local preset and skips cloud-only ones', () => {
+    it('includes every preset', () => {
         const rows = buildFitTable({ gpuConfigs: rtx4090, contextLength: 4096 });
-        const localIds = MODEL_PRESETS.filter((p) => !p.cloudOnly).map((p) => p.id).sort();
-        expect(rows.map((r) => r.preset.id).sort()).toEqual(localIds);
-        expect(rows.some((r) => r.preset.cloudOnly)).toBe(false);
+        expect(rows.map((r) => r.preset.id).sort()).toEqual(MODEL_PRESETS.map((p) => p.id).sort());
     });
 
     it('sorts by tier, then by required VRAM descending', () => {
@@ -105,8 +103,10 @@ describe('MODEL_PRESETS data', () => {
         for (const p of MODEL_PRESETS) expect(p.vendor, p.id).toBeTruthy();
     });
 
-    it('gives every local preset real parameter counts', () => {
-        for (const p of MODEL_PRESETS.filter((x) => !x.cloudOnly)) {
+    it('only lists models that run locally, with real parameter counts', () => {
+        for (const p of MODEL_PRESETS) {
+            expect(p.cloudOnly, p.id).toBeUndefined();
+            expect(p.engineHint, p.id).not.toBe('cloud');
             expect(p.totalParamsB).toBeGreaterThan(0);
             expect(p.activeParamsB).toBeGreaterThan(0);
             expect(p.activeParamsB).toBeLessThanOrEqual(p.totalParamsB);

@@ -9,15 +9,14 @@ function formatParams(b) {
 
 const MODEL_ITEMS = MODEL_PRESETS.map((p) => ({
     key: p.id,
-    name: p.cloudOnly ? `${p.label} · Ollama Cloud` : p.label,
+    name: p.label,
     detail: p.vendor,
-    badge: p.cloudOnly ? 'cloud' : formatParams(p.totalParamsB),
+    badge: formatParams(p.totalParamsB),
     // Extra words people search by: id, family, capabilities.
     haystack: [
         p.id,
         p.family,
         p.moe ? 'moe mixture-of-experts' : 'dense',
-        p.cloudOnly ? 'cloud' : 'local',
         ...p.modalities,
         p.id.includes('coder') || p.id.includes('devstral') ? 'code coding' : '',
         p.id.includes('embed') ? 'embedding' : '',

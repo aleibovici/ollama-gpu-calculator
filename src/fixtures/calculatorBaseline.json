@@ -1102,49 +1102,6 @@
         "Suggested context for ~32GB VRAM (Ollama VRAM tiers): 32k"
       ],
       "errors": {}
-    },
-    "cloud-preset": {
-      "input": {
-        "parameters": "",
-        "quantization": "16",
-        "contextLength": 4096,
-        "gpuConfigs": [
-          {
-            "gpuModel": "",
-            "count": "1"
-          }
-        ],
-        "presetId": "qwen3.5-cloud"
-      },
-      "results": {
-        "cloudOnly": true,
-        "isCompatible": true,
-        "isBorderline": false,
-        "totalGPURAM": 0,
-        "baseModelSizeGB": 0,
-        "kvCacheSize": 0,
-        "multimodalOverheadGB": 0,
-        "totalSystemRAM": 0,
-        "totalAvailableVRAM": 0,
-        "effectiveVRAM": 0,
-        "vramMargin": 0,
-        "minimumSystemRAM": 0,
-        "unifiedMemory": false,
-        "gpuConfig": "Ollama Cloud",
-        "tokensPerSecond": null,
-        "powerConsumption": {
-          "totalPower": 0,
-          "powerDetails": [],
-          "systemOverhead": 0,
-          "utilizationFactor": 0
-        },
-        "scheduleMode": "cloud",
-        "isMoE": false
-      },
-      "warnings": [
-        "This tag runs on Ollama Cloud — no local VRAM required"
-      ],
-      "errors": {}
     }
   },
   "validation": {
