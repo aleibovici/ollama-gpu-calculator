@@ -78,8 +78,9 @@ Presets live in [`src/data/modelPresets.js`](src/data/modelPresets.js). Copy a s
 
 | Field | Meaning |
 | --- | --- |
+| `vendor` | Dropdown group, for example `Google`, `Qwen`, `Meta`, `NVIDIA` or `Other` |
 | `id`, `label`, `family` | Identifiers. `label` names the Ollama model and size, for example `gemma4 31b`. |
-| `totalParamsB` | Total parameters in billions. Used for VRAM. |
+| `totalParamsB` | Total parameters in billions, as shown in Ollama's tag metadata (`ollama show <model>` or the tag page). Used for VRAM. |
 | `activeParamsB` | Active parameters per token in billions. Same as total for dense models; smaller for MoE. Used for tokens/sec. |
 | `moe` | `true` for mixture-of-experts models |
 | `defaultQuant` | The quantization Ollama ships by default (`'4.5'` is Q4_K_M) |

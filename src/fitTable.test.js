@@ -101,6 +101,10 @@ describe('MODEL_PRESETS data', () => {
         for (const p of MODEL_PRESETS) expect(p.sourceUrl).toMatch(/^https:\/\//);
     });
 
+    it('gives every preset a vendor for the dropdown groups', () => {
+        for (const p of MODEL_PRESETS) expect(p.vendor, p.id).toBeTruthy();
+    });
+
     it('gives every local preset real parameter counts', () => {
         for (const p of MODEL_PRESETS.filter((x) => !x.cloudOnly)) {
             expect(p.totalParamsB).toBeGreaterThan(0);
