@@ -1,6 +1,6 @@
 {
   "name": "ollama-gpu-calculator",
-  "version": "0.1.0",
+  "version": "0.2.0",
   "private": true,
   "description": "Check whether your GPU can run an Ollama model. Estimates VRAM, KV cache, tokens/sec and power for single and multi-GPU setups.",
   "license": "MIT",
