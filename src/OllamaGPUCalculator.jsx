@@ -14,6 +14,8 @@ import {
 import CompatibilityBanner from './components/CompatibilityBanner';
 import GpuCombobox from './components/GpuCombobox';
 import FitTable from './components/FitTable';
+import ShareButton from './components/ShareButton';
+import { parseShareParams, buildShareQuery, GPU_COUNT_OPTIONS } from './shareState';
 import { gpuSpecs } from './data/gpuSpecs';
 
 const KV_CACHE_OPTIONS = [
@@ -59,14 +61,19 @@ function poolMaxVram(gpuConfigs) {
 }
 
 const OllamaGPUCalculator = () => {
-    const nextGpuRowId = useRef(2);
+    // Inputs from a shared link (?model=...&gpu=...), read once on load.
+    const [initial] = useState(() => parseShareParams(window.location.search));
+    const nextGpuRowId = useRef((initial.gpuConfigs?.length ?? 1) + 1);
     const readoutRef = useRef(null);
-    const [presetId, setPresetId] = useState('');
-    const [parameters, setParameters] = useState('');
-    const [quantization, setQuantization] = useState('16');
-    const [kvCacheType, setKvCacheType] = useState('f16');
-    const [contextLength, setContextLength] = useState(4096);
-    const [gpuConfigs, setGpuConfigs] = useState([{ id: 1, gpuModel: '', count: '1' }]);
+    const [presetId, setPresetId] = useState(initial.presetId ?? '');
+    const [parameters, setParameters] = useState(initial.parameters ?? '');
+    const [quantization, setQuantization] = useState(initial.quantization ?? '16');
+    const [kvCacheType, setKvCacheType] = useState(initial.kvCacheType ?? 'f16');
+    const [contextLength, setContextLength] = useState(initial.contextLength ?? 4096);
+    const [gpuConfigs, setGpuConfigs] = useState(
+        () => initial.gpuConfigs?.map((cfg, i) => ({ id: i + 1, ...cfg }))
+            ?? [{ id: 1, gpuModel: '', count: '1' }]
+    );
     const [theme, setTheme] = useState(
         () => (document.documentElement.getAttribute('data-theme') === 'light' ? 'light' : 'dark')
     );
@@ -144,6 +151,19 @@ const OllamaGPUCalculator = () => {
             value: Math.round(paramCount),
         });
     }, [results, parameters]);
+
+    // Keep the URL in sync with the inputs so the address bar is always shareable.
+    // replaceState (not pushState) so the back button isn't flooded.
+    const shareQuery = useMemo(
+        () => buildShareQuery({ presetId, parameters, quantization, kvCacheType, contextLength, gpuConfigs }),
+        [presetId, parameters, quantization, kvCacheType, contextLength, gpuConfigs]
+    );
+    useEffect(() => {
+        const { pathname, search, hash } = window.location;
+        const nextSearch = shareQuery ? `?${shareQuery}` : '';
+        if (search === nextSearch) return;
+        window.history.replaceState(window.history.state, '', `${pathname}${nextSearch}${hash}`);
+    }, [shareQuery]);
 
     useEffect(() => {
         document.documentElement.setAttribute('data-theme', theme);
@@ -366,7 +386,7 @@ const OllamaGPUCalculator = () => {
                                         value={config.count}
                                         onChange={(e) => updateGpuConfig(index, 'count', e.target.value)}
                                     >
-                                        {[1, 2, 3, 4, 8].map((n) => (
+                                        {GPU_COUNT_OPTIONS.map((n) => (
                                             <option key={n} value={n.toString()}>×{n}</option>
                                         ))}
                                     </select>
@@ -475,7 +495,11 @@ const OllamaGPUCalculator = () => {
                 <section ref={readoutRef} className="iw-panel iw-readout" aria-labelledby="readout-heading">
                     <div className="iw-panel-header">
                         <h2 id="readout-heading" className="iw-panel-title">02 · Live Readout</h2>
-                        <span className="iw-panel-id">{results ? 'SIGNAL · LOCKED' : 'AWAITING · INPUT'}</span>
+                        {shareQuery ? (
+                            <ShareButton />
+                        ) : (
+                            <span className="iw-panel-id">AWAITING · INPUT</span>
+                        )}
                     </div>
 
                     {!results ? (

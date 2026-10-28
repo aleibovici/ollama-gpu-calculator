@@ -1413,3 +1413,32 @@ tr[data-state="bad"] .iw-fit-num { color: var(--ink-3); }
   .iw-fit-dot { margin-right: 0; }
   .iw-fit-table thead th:first-child { font-size: 0; }
 }
+
+/* ----------------------------------------------------------
+   SHARE LINK
+   ---------------------------------------------------------- */
+.iw-share-btn {
+  background: transparent;
+  border: 1px solid var(--line-strong);
+  color: var(--ink-2);
+  padding: 5px 10px;
+  border-radius: 3px;
+  font-family: var(--font-mono);
+  font-size: 10px;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  cursor: pointer;
+  white-space: nowrap;
+  transition: all 0.15s ease;
+}
+.iw-share-btn:hover,
+.iw-share-btn:focus-visible,
+.iw-share-btn[data-state="copied"] {
+  color: var(--signal-ok);
+  border-color: var(--signal-ok);
+  background: var(--signal-ok-bg);
+}
+.iw-share-btn[data-state="failed"] {
+  color: var(--signal-warn);
+  border-color: var(--signal-warn);
+}
