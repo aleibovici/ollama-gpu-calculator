@@ -18,7 +18,11 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 
 ### Changed
 
-- Model presets re-verified against ollama.com/library (CALIB 2026.10) and grown from 29 to 74, grouped by vendor in the dropdown. New: Qwen 3.8 27b and 3.8-flash-next, the full Qwen 3.5 range, Nemotron 3.5 Super, Nemotron 3 Nano and Nano Omni, Llama 4 Scout and Maverick, Llama 3.3, DeepSeek-R1 8b/14b/32b/671b, DeepSeek-V3.1, Mistral Medium 3.5, Devstral Small 2, Mistral Small 3.2, Ministral 3, Granite 4.2, Gemma 3 4b/12b, Gemma 3n, Qwen3 8b/30b/235b, Qwen3-Coder 480b and Next, Qwen3-Next, Qwen3-VL 8b/30b, Flint, LFM 2.5, Ornith 1.5, Phi-4 and OLMo 3.1.
+- Model presets re-verified against ollama.com/library (CALIB 2026.10) and grown from 29 to 71, grouped by vendor in the dropdown. New: Qwen 3.8 27b and 3.8-flash-next, the full Qwen 3.5 range, Nemotron 3.5 Super, Nemotron 3 Nano and Nano Omni, Llama 4 Scout and Maverick, Llama 3.3, DeepSeek-R1 8b/14b/32b/671b, DeepSeek-V3.1, Mistral Medium 3.5, Devstral Small 2, Mistral Small 3.2, Ministral 3, Granite 4.2, Gemma 3 4b/12b, Gemma 3n, Qwen3 8b/30b/235b, Qwen3-Coder 480b and Next, Qwen3-Next, Qwen3-VL 8b/30b, Flint, LFM 2.5, Ornith 1.5, Phi-4 and OLMo 3.1.
+
+### Removed
+
+- Ollama Cloud presets (`qwen3.5:cloud`, `gpt-oss:120b-cloud`, `minimax-m3:cloud`) and the cloud-only readout. Cloud models run on Ollama's servers, so they don't need a local GPU.
 
 ### Fixed
 
@@ -27,7 +31,7 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 - Parameter counts now use Ollama's stored values, for example gemma4 e2b/e4b at 4.65B/7.52B instead of their 2B/4B "effective" size, so VRAM isn't underestimated.
 - Context limits: `qwen3 32b` is 40K on Ollama, not 128K. Vision support added for `qwen3.6` and projector sizes updated from the tag metadata.
 - `muse-glimmer 30b` no longer shows the MLX-only warning on GPUs that use the GGUF build.
-- `minimax-m2` preset listed an 8B local model that never existed on Ollama (MiniMax-M2 was a 230B cloud-only model, retired June 2026). Replaced with the cloud-only `minimax-m3:cloud`.
+- `minimax-m2` preset listed an 8B local model that never existed on Ollama (MiniMax-M2 was a 230B cloud-only model, retired June 2026). Removed.
 - `glm-5 9b` preset described a model that doesn't exist (GLM-5 is a 744B cloud-only model, retired July 2026). Replaced with `glm-4.7-flash` (30B MoE, 3B active), Ollama's current local GLM model.
 
 ### Changed

@@ -44,10 +44,6 @@ describe('buildShareQuery', () => {
         expect(q).toBe('kv=q4_0&ctx=4k&gpu=rtx4090');
     });
 
-    it('writes only the model for a cloud-only preset', () => {
-        expect(buildShareQuery({ ...base, presetId: 'minimax-m3-cloud' })).toBe('model=minimax-m3-cloud');
-    });
-
     it('ignores an invalid parameter value', () => {
         expect(buildShareQuery({ ...base, parameters: 'abc' })).toBe('');
     });
@@ -85,6 +81,12 @@ describe('parseShareParams', () => {
 
     it('ignores unknown and invalid values', () => {
         expect(parseShareParams('?model=nope&params=-3&quant=fp99&kv=q2&ctx=lots&gpu=gtx9999&gpu=rtx4090*5')).toEqual({});
+    });
+
+    it('ignores links to removed presets (e.g. old Ollama Cloud tags)', () => {
+        expect(parseShareParams('?model=qwen3.5-cloud&gpu=rtx4090')).toEqual({
+            gpuConfigs: [{ gpuModel: 'rtx4090', count: '1' }],
+        });
     });
 
     it('snaps an odd context down to a dropdown option', () => {

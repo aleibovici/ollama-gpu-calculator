@@ -82,11 +82,9 @@ export function parseShareParams(search) {
     const preset = getModelPreset(params.get('model'));
     if (preset) {
         state.presetId = preset.id;
-        if (!preset.cloudOnly) {
-            state.parameters = String(preset.totalParamsB);
-            state.quantization = quant ?? preset.defaultQuant;
-            state.contextLength = ctx ?? nearestContextOption(preset.contextDefault);
-        }
+        state.parameters = String(preset.totalParamsB);
+        state.quantization = quant ?? preset.defaultQuant;
+        state.contextLength = ctx ?? nearestContextOption(preset.contextDefault);
         return state;
     }
 
@@ -121,7 +119,7 @@ export function buildShareQuery({ presetId, parameters, quantization, kvCacheTyp
 
     // Context and KV cache also drive the "what fits" table, so keep them
     // whenever a GPU is chosen, even without a model.
-    if (!preset?.cloudOnly && (hasModel || gpus.length)) {
+    if (hasModel || gpus.length) {
         if (hasModel) {
             const q = quantToParam(quantization);
             if (q) parts.push(['quant', q]);

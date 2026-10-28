@@ -45,12 +45,6 @@ describe('calculator baseline — decomposed API matches runCalculator', () => {
     for (const [id, fixture] of Object.entries(baseline.scenarios)) {
         it(`${id} (compute + warnings)`, () => {
             const preset = getModelPreset(fixture.input.presetId);
-            if (preset?.cloudOnly) {
-                const full = runCalculator(fixture.input);
-                expect(full.results).toEqual(fixture.results);
-                expect(full.warnings).toEqual(fixture.warnings);
-                return;
-            }
 
             const validation = validateCalculatorInputs({
                 parameters: fixture.input.parameters,
@@ -117,10 +111,6 @@ describe('calculator baseline — output shape invariants', () => {
     it('compatibility flags agree with numeric margin', () => {
         for (const fixture of Object.values(baseline.scenarios)) {
             const { results } = fixture;
-            if (results.cloudOnly) {
-                expect(results.isCompatible).toBe(true);
-                continue;
-            }
             expect(results.isCompatible).toBe(results.effectiveVRAM >= results.totalGPURAM);
             expect(results.isBorderline).toBe(results.vramMargin > 0 && results.vramMargin < 2);
         }

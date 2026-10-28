@@ -9,19 +9,6 @@ const INSUFFICIENT_SUGGESTIONS = [
 
 const CompatibilityBanner = ({ results, warnings }) => {
     if (!results) return null;
-    if (results.cloudOnly) {
-        return (
-            <div className="iw-advisory">
-                <div className="iw-advisory-title">Advisory · Ollama Cloud</div>
-                <ul>
-                    {(warnings && warnings.length ? warnings : ['Use Ollama Cloud — no local VRAM']).map((text, i) => (
-                        <li key={i}>{text}</li>
-                    ))}
-                </ul>
-            </div>
-        );
-    }
-
     const variant = getCompatibilityTier(results);
 
     const items = [];

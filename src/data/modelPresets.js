@@ -8,8 +8,8 @@
  * totalParamsB drives VRAM (weights); activeParamsB drives tok/s for MoE.
  * multimodalOverheadGB is the vision/audio projector shipped with the default tag.
  * gqaRatio is an estimate (KV heads / query heads); Ollama doesn't publish it.
- * vendor groups the preset dropdown.
- * Cloud-only entries are labeled and must not feed local VRAM math.
+ * vendor is shown and searchable in the preset picker.
+ * Only models that run locally are listed (no Ollama Cloud tags).
  */
 
 export const MODEL_PRESETS = [
@@ -1192,59 +1192,6 @@ export const MODEL_PRESETS = [
         gqaRatio: 1,
         engineHint: 'gguf',
         sourceUrl: 'https://ollama.com/library/nomic-embed-text',
-    },
-    // --- Ollama Cloud
-    {
-        id: 'qwen3.5-cloud',
-        label: 'qwen3.5:cloud',
-        family: 'qwen3.5',
-        vendor: 'Ollama Cloud',
-        totalParamsB: 0,
-        activeParamsB: 0,
-        defaultQuant: '16',
-        contextDefault: 262144,
-        contextMax: 262144,
-        modalities: ['text'],
-        multimodalOverheadGB: 0,
-        gqaRatio: 1,
-        engineHint: 'cloud',
-        cloudOnly: true,
-        sourceUrl: 'https://docs.ollama.com/cloud',
-    },
-    {
-        id: 'gpt-oss-120b-cloud',
-        label: 'gpt-oss:120b-cloud',
-        family: 'gpt-oss',
-        vendor: 'Ollama Cloud',
-        totalParamsB: 0,
-        activeParamsB: 0,
-        defaultQuant: '16',
-        contextDefault: 131072,
-        contextMax: 131072,
-        modalities: ['text'],
-        multimodalOverheadGB: 0,
-        gqaRatio: 1,
-        engineHint: 'cloud',
-        cloudOnly: true,
-        sourceUrl: 'https://docs.ollama.com/cloud',
-    },
-    // MiniMax ships on Ollama as cloud-only tags (minimax-m2 was retired June 2026).
-    {
-        id: 'minimax-m3-cloud',
-        label: 'minimax-m3:cloud',
-        family: 'minimax',
-        vendor: 'Ollama Cloud',
-        totalParamsB: 0,
-        activeParamsB: 0,
-        defaultQuant: '16',
-        contextDefault: 524288,
-        contextMax: 524288,
-        modalities: ['text', 'vision'],
-        multimodalOverheadGB: 0,
-        gqaRatio: 1,
-        engineHint: 'cloud',
-        cloudOnly: true,
-        sourceUrl: 'https://ollama.com/library/minimax-m3',
     },
 ];
 
