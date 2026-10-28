@@ -2,7 +2,30 @@
   "name": "ollama-gpu-calculator",
   "version": "0.1.0",
   "private": true,
+  "description": "Check whether your GPU can run an Ollama model. Estimates VRAM, KV cache, tokens/sec and power for single and multi-GPU setups.",
+  "license": "MIT",
+  "author": "aleibovici (https://github.com/aleibovici)",
   "homepage": "https://aleibovici.github.io/ollama-gpu-calculator",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/aleibovici/ollama-gpu-calculator.git"
+  },
+  "bugs": {
+    "url": "https://github.com/aleibovici/ollama-gpu-calculator/issues"
+  },
+  "keywords": [
+    "ollama",
+    "llm",
+    "gpu",
+    "vram",
+    "calculator",
+    "kv-cache",
+    "quantization",
+    "local-llm"
+  ],
+  "engines": {
+    "bun": ">=1.2"
+  },
   "dependencies": {
     "@radix-ui/react-label": "^2.1.0",
     "@radix-ui/react-select": "^2.1.2",

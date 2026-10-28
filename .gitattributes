@@ -1,0 +1,10 @@
+# Normalize line endings
+* text=auto eol=lf
+
+# Binary assets
+*.ico binary
+*.png binary
+
+# Generated files: collapse in GitHub diffs
+bun.lock linguist-generated=true
+src/fixtures/calculatorBaseline.json linguist-generated=true

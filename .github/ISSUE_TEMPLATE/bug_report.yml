@@ -1,0 +1,44 @@
+name: Bug report
+description: Something in the calculator is broken or gives a clearly wrong result.
+title: "[Bug]: "
+labels: ["bug"]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Thanks for reporting! The more detail you give, the faster we can fix it.
+        If a GPU spec or model preset is wrong, please use the **GPU or model data** template instead.
+  - type: textarea
+    id: what-happened
+    attributes:
+      label: What happened?
+      description: Describe the bug, and what you expected to happen instead.
+    validations:
+      required: true
+  - type: textarea
+    id: inputs
+    attributes:
+      label: Calculator inputs
+      description: The settings you used, so we can reproduce it.
+      placeholder: |
+        Model / parameters: qwen3.5 9b
+        Quantization: Q4_K_M
+        KV cache: f16
+        Context length: 32K
+        GPUs: 1x RTX 4090
+    validations:
+      required: true
+  - type: textarea
+    id: real-usage
+    attributes:
+      label: Real-world measurement (optional)
+      description: If you ran this in Ollama, what did `ollama ps` or `nvidia-smi` report?
+  - type: input
+    id: browser
+    attributes:
+      label: Browser and OS
+      placeholder: Firefox 131 on Windows 11
+  - type: textarea
+    id: extra
+    attributes:
+      label: Screenshots or other context
