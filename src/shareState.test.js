@@ -1,5 +1,6 @@
 import { describe, it, expect } from 'vitest';
 import { parseShareParams, buildShareQuery } from './shareState';
+import { getModelPreset } from './calculatorOutput';
 
 const base = {
     presetId: '',
@@ -19,7 +20,7 @@ describe('buildShareQuery', () => {
         const q = buildShareQuery({
             ...base,
             presetId: 'qwen3.6-35b',
-            parameters: '35',
+            parameters: String(getModelPreset('qwen3.6-35b').totalParamsB),
             quantization: '4.5',
             kvCacheType: 'q8_0',
             contextLength: 32768,
@@ -56,7 +57,7 @@ describe('parseShareParams', () => {
     it('reads a full preset link', () => {
         expect(parseShareParams('?model=qwen3.6-35b&quant=q4_k_m&kv=q8_0&ctx=32k&gpu=rtx4090*2&gpu=a100-80gb')).toEqual({
             presetId: 'qwen3.6-35b',
-            parameters: '35',
+            parameters: String(getModelPreset('qwen3.6-35b').totalParamsB),
             quantization: '4.5',
             kvCacheType: 'q8_0',
             contextLength: 32768,
@@ -65,10 +66,11 @@ describe('parseShareParams', () => {
     });
 
     it('fills preset defaults when quant and ctx are missing', () => {
+        const preset = getModelPreset('llama3.1-8b');
         const s = parseShareParams('?model=llama3.1-8b');
         expect(s.presetId).toBe('llama3.1-8b');
-        expect(s.parameters).toBe('8');
-        expect(s.quantization).toBe('4.5');
+        expect(s.parameters).toBe(String(preset.totalParamsB));
+        expect(s.quantization).toBe(preset.defaultQuant);
         expect(s.contextLength).toBe(131072);
     });
 

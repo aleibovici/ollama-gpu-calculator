@@ -38,6 +38,14 @@ const NOTES = [
     'Power figures account for utilization during LLM inference, not peak TDP.',
 ];
 
+// Preset dropdown sections, in data order (e.g. Google, Qwen, Meta, ... Ollama Cloud).
+const PRESET_GROUPS = [...MODEL_PRESETS.reduce((groups, preset) => {
+    const vendor = preset.vendor ?? 'Other';
+    if (!groups.has(vendor)) groups.set(vendor, []);
+    groups.get(vendor).push(preset);
+    return groups;
+}, new Map())];
+
 const statusLabel = {
     ok: 'Compatible',
     warn: 'Borderline',
@@ -281,7 +289,7 @@ const OllamaGPUCalculator = () => {
 
                 <div className="iw-header-side">
                     <div className="iw-meta">
-                        REV <span>v2</span> · CALIB <span>2026.09</span><br />
+                        REV <span>v2</span> · CALIB <span>2026.10</span><br />
                         STATIC BUILD · GITHUB PAGES
                     </div>
                     <div className="iw-link-row">
@@ -316,10 +324,14 @@ const OllamaGPUCalculator = () => {
                                 onChange={(e) => handlePresetChange(e.target.value)}
                             >
                                 <option value="">— custom / enter params —</option>
-                                {MODEL_PRESETS.map((p) => (
-                                    <option key={p.id} value={p.id}>
-                                        {p.cloudOnly ? `${p.label} · Ollama Cloud` : p.label}
-                                    </option>
+                                {PRESET_GROUPS.map(([vendor, presets]) => (
+                                    <optgroup key={vendor} label={vendor}>
+                                        {presets.map((p) => (
+                                            <option key={p.id} value={p.id}>
+                                                {p.cloudOnly ? `${p.label} · Ollama Cloud` : p.label}
+                                            </option>
+                                        ))}
+                                    </optgroup>
                                 ))}
                             </select>
                             {selectedPreset?.cloudOnly && (

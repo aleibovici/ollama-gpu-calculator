@@ -888,12 +888,12 @@
         "baseModelSizeGB": 13.201497495174408,
         "activeWeightSizeGB": 1.9907020032405853,
         "kvCacheSize": 1.2309483688541745,
-        "multimodalOverheadGB": 0.55,
-        "totalGPURAM": 16.302595613546025,
-        "totalSystemRAM": 18.25890708717155,
+        "multimodalOverheadGB": 1.2,
+        "totalGPURAM": 16.952595613546023,
+        "totalSystemRAM": 18.98690708717155,
         "totalAvailableVRAM": 32,
         "effectiveVRAM": 32,
-        "vramMargin": 15.697404386453975,
+        "vramMargin": 15.047404386453977,
         "minimumSystemRAM": 32,
         "unifiedMemory": false,
         "scheduleMode": "single",
@@ -927,7 +927,7 @@
         "MoE model: Required VRAM uses total weights (25.2B); tok/s uses ~3.8B active params",
         "4-bit class quantization (Q4_K_M / NVFP4 / MXFP4) trades quality for memory and speed",
         "Suggested context for ~32GB VRAM (Ollama VRAM tiers): 32k",
-        "Includes ~0.55GB multimodal encoder overhead stub"
+        "Includes ~1.2GB multimodal encoder overhead stub"
       ],
       "errors": {}
     },

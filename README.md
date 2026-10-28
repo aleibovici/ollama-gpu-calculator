@@ -14,7 +14,7 @@ Everything runs in your browser. There is no backend and nothing to install.
 ## Features
 
 - **99 GPUs** across NVIDIA (Maxwell to Blackwell, consumer and data center), AMD (RDNA2 to RDNA4, Instinct CDNA1 to CDNA4, Ryzen AI) and Apple Silicon. You can search for a GPU by name.
-- **29 model presets** for current Ollama models, or enter any parameter count yourself. Three presets are cloud-only; they are labeled and are not counted in local VRAM math.
+- **74 model presets** for current Ollama models (Qwen 3.8, Gemma 4, Nemotron 3.5, Llama 4, gpt-oss, DeepSeek and more), grouped by vendor, or enter any parameter count yourself. Data is checked against [ollama.com/library](https://ollama.com/library). Three presets are cloud-only; they are labeled and are not counted in local VRAM math.
 - **"What can this setup run?" table.** Pick your GPUs and see every model preset ranked by fit, with required VRAM and estimated tokens/sec. Load any row into the calculator with one click.
 - **Shareable links.** The URL always reflects your setup, so you can copy it (or use **Copy link**) and anyone who opens it sees the same configuration.
 - **Mixture-of-experts aware.** VRAM uses total parameters, while tokens/sec uses active parameters.
