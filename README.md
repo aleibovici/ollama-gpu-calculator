@@ -1,69 +1,109 @@
 # Ollama GPU Calculator
 
-A web application built in React that helps users determine if their GPU meets the VRAM requirements for running various Ollama LLM models. Check it out at [http://aleibovici.github.io/ollama-gpu-calculator/](http://aleibovici.github.io/ollama-gpu-calculator/).
+[![CI](https://github.com/aleibovici/ollama-gpu-calculator/actions/workflows/ci.yml/badge.svg)](https://github.com/aleibovici/ollama-gpu-calculator/actions/workflows/ci.yml)
+[![Deploy](https://github.com/aleibovici/ollama-gpu-calculator/actions/workflows/deploy.yml/badge.svg)](https://github.com/aleibovici/ollama-gpu-calculator/actions/workflows/deploy.yml)
+[![License: MIT](https://img.shields.io/badge/License-MIT-blue.svg)](LICENSE)
+[![PRs welcome](https://img.shields.io/badge/PRs-welcome-brightgreen.svg)](CONTRIBUTING.md)
 
-## About
+Can your GPU run that Ollama model? This web app estimates the VRAM, KV cache, system RAM, decode speed and power draw for a model on your hardware, and tells you whether it fits.
 
-This calculator helps you:
-- Check if your GPU has sufficient VRAM for specific Ollama models
-- Compare different LLM model requirements
-- Determine approximate GPU specifications needed for your desired models
-- Optimize model selection based on your available hardware
+**Try it: [aleibovici.github.io/ollama-gpu-calculator](https://aleibovici.github.io/ollama-gpu-calculator/)**
 
-Join the discussion about this tool on [Reddit](https://www.reddit.com/r/ollama/comments/1gdux20/ollama_gpu_compatibility_calculator/).
+Everything runs in your browser. There is no backend and nothing to install.
 
-## GPU Requirements
+## Features
 
-Different Ollama models have varying VRAM requirements:
-- Smaller models (3B-7B parameters) typically need 4-8GB VRAM
-- Medium models (13B parameters) usually require 8-16GB VRAM
-- Larger models (30B-65B parameters) need 24GB+ VRAM
+- **99 GPUs** across NVIDIA (Maxwell to Blackwell, consumer and data center), AMD (RDNA2 to RDNA4, Instinct CDNA1 to CDNA4, Ryzen AI) and Apple Silicon. You can search for a GPU by name.
+- **29 model presets** for current Ollama models, or enter any parameter count yourself. Two presets are cloud-only; they are labeled and are not counted in local VRAM math.
+- **Mixture-of-experts aware.** VRAM uses total parameters, while tokens/sec uses active parameters.
+- **Quantization**: FP32, FP16/BF16, Q8_0, Q4_K_M, NVFP4 and MXFP4.
+- **KV cache types**: f16 (default), q8_0 and q4_0, matching Ollama's `OLLAMA_KV_CACHE_TYPE` setting, plus context lengths from 4K to 1M tokens.
+- **Multi-GPU and mixed GPU setups**, with warnings about scaling losses and mixed GPU generations.
+- **Unified memory** on Apple Silicon, DGX Spark and Ryzen AI, where VRAM and system RAM come from the same pool.
+- A clear result (compatible, borderline or insufficient) with a breakdown of model weights and KV cache, plus estimated system RAM, tokens/sec and power.
+- Light and dark themes.
 
-Use this calculator to get ballpark estimates for your specific use case.
+## How the estimates work
 
-## Development
+The math lives in [`src/calculations.js`](src/calculations.js) and uses standard transformer formulas rather than curve fits:
 
-This project now uses [Bun.js](https://bun.sh) to replace the deprecated create-react-app, as well as offer a speedup for package management compared to npm. We currently use Vite/Vitest for bundling and testing, however, we may migrate to Bun for these needs as well at some point in the future.
+| Estimate | Formula |
+| --- | --- |
+| Model weights | `total_params × bits_per_weight / 8` |
+| KV cache | `2 × n_layers × d_model × context × bytes_per_element × gqa_ratio`, with layer count and width estimated from parameter count (`params ≈ 12·L·d²`, `d/L ≈ 128`) |
+| Decode tokens/sec | `effective_memory_bandwidth / (active_weight_bytes + kv_cache_bytes)`. Single-batch decode is limited by memory bandwidth. |
 
-To install Bun, you can simply run the following script on Linux/macOS:
+GPU specs are in [`src/data/gpuSpecs.js`](src/data/gpuSpecs.js) and model presets are in [`src/data/modelPresets.js`](src/data/modelPresets.js). Each preset links to its source.
+
+These are **estimates**. Real usage depends on the Ollama version, the backend (CUDA, ROCm, Metal, MLX), drivers, flash attention, batch size and what else is using the GPU. Leave some headroom.
+
+## Getting started
+
+You need [Bun](https://bun.sh) 1.2 or later.
+
+```bash
+git clone https://github.com/aleibovici/ollama-gpu-calculator.git
+cd ollama-gpu-calculator
+bun install
+bun run start
 ```
-curl -fsSL https://bun.sh/install | bash
+
+Then open the URL that Vite prints (usually <http://localhost:5173/ollama-gpu-calculator/>).
+
+### Scripts
+
+| Command | What it does |
+| --- | --- |
+| `bun run start` | Start the dev server with hot reload |
+| `bun run test` | Run the tests in watch mode |
+| `bunx --bun vitest run` | Run the tests once (what CI runs) |
+| `bun run build` | Build for production into `dist/` |
+
+## Project structure
+
+```text
+src/
+├── OllamaGPUCalculator.jsx     # Main UI
+├── calculations.js             # VRAM, KV cache, tokens/sec, power and RAM math
+├── calculatorOutput.js         # Input validation, results and warnings
+├── components/                 # GPU picker, compatibility banner, analytics
+├── data/
+│   ├── gpuSpecs.js             # GPU database
+│   └── modelPresets.js         # Ollama model presets
+├── fixtures/
+│   └── calculatorBaseline.json # Regression baseline for calculator output
+└── styles/
+scripts/
+└── generate-calculator-baseline.mjs
 ```
 
-Or, if you use Windows:
-```
-powershell -c "irm bun.sh/install.ps1 | iex"
-```
+## Deployment
 
-You can also install with various package managers or Docker using the instructions [here](https://bun.com/docs/installation#package-managers).
-
-Afterwards, run `bun install` in the project's root directory to install the neccesary dependencies.
-
-## Developing and Running Locally
-
-In the project's directory, you can run:
-
-### `bun run start`
-
-Runs the app in development mode.
-
-### `bun run test`
-
-Launches the test runner in interactive watch mode.
-
-### `bun run build`
-
-Builds the app for production to the `dist` folder.\
-It correctly bundles React in production mode and optimizes the build for the best performance.
-
-The build is minified and the filenames include the hashes, making it easy to deploy on GitHub Pages.
+Every push to `main` is tested, built and published to GitHub Pages by [`.github/workflows/deploy.yml`](.github/workflows/deploy.yml).
 
 ## Contributing
 
-Feel free to open issues or submit pull requests if you'd like to contribute to this project.
+Contributions are welcome. Adding a missing GPU or model, or fixing a spec, is a great first PR. Read [CONTRIBUTING.md](CONTRIBUTING.md) to get started, and use the [issue templates](https://github.com/aleibovici/ollama-gpu-calculator/issues/new/choose) to report bugs or request data changes.
 
-## Learn More
+Thanks to [everyone who has contributed](https://github.com/aleibovici/ollama-gpu-calculator/graphs/contributors).
 
-To learn more about Ollama, visit the [official Ollama documentation](https://docs.ollama.com), including [hardware support](https://docs.ollama.com/gpu) and [context length](https://docs.ollama.com/context-length).
+This project follows a [Code of Conduct](CODE_OF_CONDUCT.md). By taking part, you agree to follow it.
 
-For React documentation, check out the [React documentation](https://react.dev/).
+## Security
+
+Please don't report vulnerabilities in public issues. See [SECURITY.md](SECURITY.md).
+
+## Privacy
+
+The hosted site uses Google Analytics to count page views and record which calculator settings are used (for example, preset, quantization and context length). It doesn't collect personal data that you enter. **If you fork and deploy this project, remove or replace the analytics first.** Otherwise your site sends its data to this project's Google Analytics property. Remove the Google tag from `index.html` and the `<Analytics />` component from `src/App.jsx`. Without them, the `ReactGA.event` calls in `src/OllamaGPUCalculator.jsx` do nothing.
+
+## Community
+
+- Discussion on [Reddit r/ollama](https://www.reddit.com/r/ollama/comments/1gdux20/ollama_gpu_compatibility_calculator/)
+- Ollama docs: [hardware support](https://docs.ollama.com/gpu) and [context length](https://docs.ollama.com/context-length)
+
+## License
+
+[MIT](LICENSE) © aleibovici and contributors
+
+This project is not affiliated with or endorsed by Ollama.

@@ -1,0 +1,11 @@
+blank_issues_enabled: false
+contact_links:
+  - name: Security vulnerability
+    url: https://github.com/aleibovici/ollama-gpu-calculator/security/advisories/new
+    about: Please report security issues privately, not as a public issue.
+  - name: Questions and discussion
+    url: https://www.reddit.com/r/ollama/comments/1gdux20/ollama_gpu_compatibility_calculator/
+    about: Ask questions and share feedback with the community on Reddit.
+  - name: Ollama issues
+    url: https://github.com/ollama/ollama/issues
+    about: Problems with Ollama itself belong in the Ollama repository.

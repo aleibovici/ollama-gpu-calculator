@@ -1,0 +1,52 @@
+name: GPU or model data
+description: Add a missing GPU or model preset, or correct an existing spec.
+title: "[Data]: "
+labels: ["data"]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Specs come from `src/data/gpuSpecs.js` and `src/data/modelPresets.js`.
+        Pull requests are very welcome. See [CONTRIBUTING.md](https://github.com/aleibovici/ollama-gpu-calculator/blob/main/CONTRIBUTING.md#adding-or-correcting-a-gpu).
+  - type: dropdown
+    id: kind
+    attributes:
+      label: Request type
+      options:
+        - Add a GPU
+        - Correct a GPU spec
+        - Add a model preset
+        - Correct a model preset
+    validations:
+      required: true
+  - type: input
+    id: name
+    attributes:
+      label: GPU or model name
+      placeholder: Radeon RX 9060 XT 16GB / qwen3.6 27b
+    validations:
+      required: true
+  - type: textarea
+    id: details
+    attributes:
+      label: Values
+      description: |
+        For a GPU: VRAM (GB), memory bandwidth (GB/s), FP16 TFLOPS (dense), board power (W), architecture, unified memory (yes/no).
+        For a model: total and active parameters, default quantization, context length, modalities.
+        For a correction: the current value and the correct value.
+    validations:
+      required: true
+  - type: input
+    id: source
+    attributes:
+      label: Source link
+      description: Vendor spec page, Ollama library page or model card.
+      placeholder: https://...
+    validations:
+      required: true
+  - type: checkboxes
+    id: pr
+    attributes:
+      label: Contribution
+      options:
+        - label: I'm willing to open a pull request for this.
