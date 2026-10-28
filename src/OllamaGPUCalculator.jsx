@@ -7,27 +7,20 @@ import {
     suggestedContextForVram,
     MODEL_PRESETS,
     getModelPreset,
+    QUANT_OPTIONS,
+    CONTEXT_OPTIONS,
+    buildFitTable,
 } from './calculatorOutput';
 import CompatibilityBanner from './components/CompatibilityBanner';
 import GpuCombobox from './components/GpuCombobox';
+import FitTable from './components/FitTable';
 import { gpuSpecs } from './data/gpuSpecs';
-
-const QUANT_OPTIONS = [
-    { value: '32', label: 'FP32', hint: '32-bit' },
-    { value: '16', label: 'FP16', hint: 'BF16' },
-    { value: '8', label: 'Q8_0', hint: '8-bit' },
-    { value: '4.5', label: 'Q4_K_M', hint: '~4.5b' },
-    { value: '4', label: 'NVFP4', hint: 'MLX' },
-    { value: '4.25', label: 'MXFP4', hint: 'gpt-oss' },
-];
 
 const KV_CACHE_OPTIONS = [
     { value: 'f16', label: 'f16', hint: 'default' },
     { value: 'q8_0', label: 'q8_0', hint: '~½' },
     { value: 'q4_0', label: 'q4_0', hint: '~¼' },
 ];
-
-const CONTEXT_OPTIONS = [4096, 8192, 16384, 32768, 65536, 131072, 262144, 1048576];
 
 const NOTES = [
     'Estimates are ballpark — Ollama’s scheduler measures exact memory at load time; this tool does not.',
@@ -67,6 +60,7 @@ function poolMaxVram(gpuConfigs) {
 
 const OllamaGPUCalculator = () => {
     const nextGpuRowId = useRef(2);
+    const readoutRef = useRef(null);
     const [presetId, setPresetId] = useState('');
     const [parameters, setParameters] = useState('');
     const [quantization, setQuantization] = useState('16');
@@ -127,6 +121,18 @@ const OllamaGPUCalculator = () => {
         }
     }, [parameters, quantization, contextLength, gpuConfigs, kvCacheType, presetId, selectedPreset]);
 
+    const fitRows = useMemo(
+        () => buildFitTable({ gpuConfigs, contextLength, kvCacheType }),
+        [gpuConfigs, contextLength, kvCacheType]
+    );
+    const fitGpuLabel = useMemo(
+        () => gpuConfigs
+            .filter((c) => gpuSpecs[c.gpuModel])
+            .map((c) => `${c.count}× ${gpuSpecs[c.gpuModel].name}`)
+            .join(' + '),
+        [gpuConfigs]
+    );
+
     useEffect(() => {
         if (!results || results.cloudOnly) return;
         const paramCount = parseFloat(parameters);
@@ -166,6 +172,18 @@ const OllamaGPUCalculator = () => {
             );
         setContextLength(nearest);
         ReactGA.event({ category: 'Settings', action: 'Select Preset', label: id });
+    };
+
+    // Load a row from the "what fits" table with the exact inputs that row used,
+    // so the readout matches the row (handlePresetChange would reset context).
+    const handleLoadFromFitTable = (row) => {
+        setPresetId(row.preset.id);
+        setParameters(String(row.preset.totalParamsB));
+        setQuantization(row.quantization);
+        setContextLength(row.contextLength);
+        ReactGA.event({ category: 'Fit Table', action: 'Load Preset', label: row.preset.id });
+        const reduceMotion = window.matchMedia?.('(prefers-reduced-motion: reduce)').matches;
+        readoutRef.current?.scrollIntoView?.({ behavior: reduceMotion ? 'auto' : 'smooth', block: 'start' });
     };
 
     const handleQuantizationChange = (value) => {
@@ -454,7 +472,7 @@ const OllamaGPUCalculator = () => {
                     </div>
                 </section>
 
-                <section className="iw-panel iw-readout" aria-labelledby="readout-heading">
+                <section ref={readoutRef} className="iw-panel iw-readout" aria-labelledby="readout-heading">
                     <div className="iw-panel-header">
                         <h2 id="readout-heading" className="iw-panel-title">02 · Live Readout</h2>
                         <span className="iw-panel-id">{results ? 'SIGNAL · LOCKED' : 'AWAITING · INPUT'}</span>
@@ -464,7 +482,9 @@ const OllamaGPUCalculator = () => {
                         <div className="iw-readout-empty">
                             <div className="iw-readout-empty-icon">~</div>
                             <div className="iw-readout-empty-text">
-                                Enter model size and pick a GPU to begin
+                                {fitRows.length > 0
+                                    ? 'Enter a model size, or load one from the table below'
+                                    : 'Enter model size and pick a GPU to begin'}
                             </div>
                         </div>
                     ) : results.cloudOnly ? (
@@ -601,6 +621,17 @@ const OllamaGPUCalculator = () => {
                     )}
                 </section>
             </div>
+
+            {fitRows.length > 0 && (
+                <FitTable
+                    rows={fitRows}
+                    current={{ presetId, quantization, contextLength }}
+                    gpuLabel={fitGpuLabel}
+                    contextLength={contextLength}
+                    kvCacheType={kvCacheType}
+                    onLoad={handleLoadFromFitTable}
+                />
+            )}
 
             <section className="iw-notes" aria-label="Operating notes">
                 <div className="iw-notes-title">Operating Notes</div>

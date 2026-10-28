@@ -1237,3 +1237,179 @@ body {
     transition-duration: 0.001ms !important;
   }
 }
+
+/* ----------------------------------------------------------
+   WHAT FITS — model sweep table
+   ---------------------------------------------------------- */
+.iw-visually-hidden {
+  position: absolute !important;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  margin: -1px;
+  overflow: hidden;
+  clip: rect(0 0 0 0);
+  white-space: nowrap;
+  border: 0;
+}
+
+.iw-fit { margin-top: 32px; }
+
+.iw-fit-summary {
+  margin: 0 0 16px;
+  font-size: 14px;
+  color: var(--ink-2);
+}
+.iw-fit-summary b { color: var(--ink-1); font-weight: 600; }
+.iw-fit-summary-meta {
+  font-family: var(--font-mono);
+  font-size: 11px;
+  color: var(--ink-3);
+}
+
+.iw-fit-scroll {
+  overflow-x: auto;
+  margin: 0 -22px;
+  padding: 0 22px;
+}
+
+.iw-fit-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 13px;
+}
+
+.iw-fit-table thead th {
+  font-family: var(--font-mono);
+  font-size: 10px;
+  font-weight: 500;
+  letter-spacing: 0.15em;
+  text-transform: uppercase;
+  color: var(--ink-3);
+  text-align: left;
+  padding: 0 10px 10px;
+  border-bottom: 1px solid var(--line-strong);
+  white-space: nowrap;
+}
+
+.iw-fit-table td,
+.iw-fit-table tbody th {
+  padding: 10px;
+  border-bottom: 1px solid var(--line);
+  vertical-align: middle;
+  text-align: left;
+}
+
+.iw-fit-table tbody tr:hover { background: var(--bg-2); }
+.iw-fit-table tbody tr.is-current { background: var(--bg-3); }
+
+.iw-fit-table .iw-fit-num {
+  font-family: var(--font-mono);
+  text-align: right;
+  white-space: nowrap;
+  color: var(--ink-1);
+}
+
+.iw-fit-model {
+  font-weight: 500;
+  color: var(--ink-1);
+  min-width: 150px;
+}
+.iw-fit-model small {
+  display: block;
+  margin-top: 2px;
+  font-family: var(--font-mono);
+  font-size: 10.5px;
+  font-weight: 400;
+  color: var(--ink-3);
+}
+.iw-fit-current {
+  font-family: var(--font-mono);
+  font-size: 10.5px;
+  font-weight: 400;
+  color: var(--signal-ok);
+}
+
+.iw-fit-quant {
+  font-family: var(--font-mono);
+  font-size: 11.5px;
+  color: var(--ink-2);
+  white-space: nowrap;
+}
+
+.iw-fit-status {
+  font-family: var(--font-mono);
+  font-size: 11px;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  white-space: nowrap;
+}
+.iw-fit-dot {
+  display: inline-block;
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  margin-right: 8px;
+  vertical-align: middle;
+}
+tr[data-state="ok"] .iw-fit-status { color: var(--signal-ok); }
+tr[data-state="warn"] .iw-fit-status { color: var(--signal-warn); }
+tr[data-state="bad"] .iw-fit-status { color: var(--signal-bad); }
+tr[data-state="ok"] .iw-fit-dot { background: var(--signal-ok); }
+tr[data-state="warn"] .iw-fit-dot { background: var(--signal-warn); }
+tr[data-state="bad"] .iw-fit-dot { background: var(--signal-bad); }
+tr[data-state="bad"] .iw-fit-model,
+tr[data-state="bad"] .iw-fit-num { color: var(--ink-3); }
+
+.iw-fit-action { text-align: right; }
+.iw-fit-load {
+  background: transparent;
+  border: 1px solid var(--line-strong);
+  color: var(--ink-2);
+  padding: 5px 12px;
+  border-radius: 3px;
+  font-family: var(--font-mono);
+  font-size: 10.5px;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  cursor: pointer;
+  white-space: nowrap;
+  transition: all 0.15s ease;
+}
+.iw-fit-load:hover:not(:disabled),
+.iw-fit-load:focus-visible {
+  color: var(--signal-ok);
+  border-color: var(--signal-ok);
+  background: var(--signal-ok-bg);
+}
+.iw-fit-load:disabled {
+  cursor: default;
+  color: var(--signal-ok);
+  border-color: transparent;
+}
+
+.iw-fit-toggle { margin-top: 16px; }
+
+@media (max-width: 720px) {
+  .iw-fit-table .iw-fit-quant,
+  .iw-fit-table .iw-fit-params { display: none; }
+  .iw-fit-table td,
+  .iw-fit-table tbody th { padding: 9px 6px; }
+  .iw-fit-table thead th { padding: 0 6px 10px; }
+  .iw-fit-model { min-width: 0; }
+  .iw-fit-load { padding: 5px 8px; }
+}
+
+@media (max-width: 480px) {
+  /* Keep the dot; the status word stays available to screen readers. */
+  .iw-fit-status-text {
+    position: absolute;
+    width: 1px;
+    height: 1px;
+    overflow: hidden;
+    clip: rect(0 0 0 0);
+    white-space: nowrap;
+  }
+  .iw-fit-dot { margin-right: 0; }
+  .iw-fit-table thead th:first-child { font-size: 0; }
+}

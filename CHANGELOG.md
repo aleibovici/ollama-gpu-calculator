@@ -8,6 +8,7 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 
 ### Added
 
+- "What can this setup run?" table: once a GPU is selected, every local model preset is checked against it at its default quantization and sorted by fit, with required VRAM and tokens/sec. Each row can be loaded into the calculator.
 - Open source community files: `CONTRIBUTING.md`, `CODE_OF_CONDUCT.md` (Contributor Covenant 2.1), `SECURITY.md`, this changelog, issue forms, a pull request template, `CODEOWNERS`, `.editorconfig` and `.gitattributes`.
 - CI workflow that runs tests and a production build on every pull request.
 - Dependabot updates for Bun dependencies and GitHub Actions.
