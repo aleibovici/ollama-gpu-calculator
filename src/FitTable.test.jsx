@@ -31,7 +31,7 @@ test('loading a row puts the same numbers in the readout', () => {
 
     fireEvent.click(within(firstRow).getByRole('button', { name: `Load ${modelName} into the calculator` }));
 
-    expect(screen.getByLabelText(/Model Preset/i)).toHaveDisplayValue(modelName);
+    expect(screen.getByLabelText(/Model Preset/i)).toHaveTextContent(modelName);
     expect(document.querySelector('.iw-hero-value').textContent).toContain(rowVram);
     expect(screen.getByRole('button', { name: `Load ${modelName} into the calculator` })).toBeDisabled();
 });

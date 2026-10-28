@@ -8,6 +8,7 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 
 ### Added
 
+- The model preset picker is now searchable: start typing and the list filters by name, size, vendor or capability (`qwen 27b`, `moe`, `vision`, `coder`). Words match in any order, and the GPU picker uses the same search.
 - Shareable links: the URL tracks the calculator inputs (`?model=…&quant=…&ctx=…&gpu=rtx4090*2`), opening a link restores the setup, and a **Copy link** button copies it.
 - "What can this setup run?" table: once a GPU is selected, every local model preset is checked against it at its default quantization and sorted by fit, with required VRAM and tokens/sec. Each row can be loaded into the calculator.
 - Open source community files: `CONTRIBUTING.md`, `CODE_OF_CONDUCT.md` (Contributor Covenant 2.1), `SECURITY.md`, this changelog, issue forms, a pull request template, `CODEOWNERS`, `.editorconfig` and `.gitattributes`.

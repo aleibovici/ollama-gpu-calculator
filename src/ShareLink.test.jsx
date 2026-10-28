@@ -14,7 +14,7 @@ test('opening a shared link restores the configuration', () => {
     window.history.replaceState(null, '', '/?model=qwen3.6-35b&quant=q8_0&ctx=32k&gpu=rtx4090*2');
     render(<OllamaGPUCalculator />);
 
-    expect(screen.getByLabelText(/Model Preset/i)).toHaveValue('qwen3.6-35b');
+    expect(screen.getByLabelText(/Model Preset/i)).toHaveTextContent('qwen3.6 35b');
     expect(screen.getByRole('radio', { name: /^Q8_0/ })).toHaveAttribute('aria-checked', 'true');
     expect(screen.getByLabelText(/Context Window/i)).toHaveValue('32768');
     expect(screen.getByRole('button', { name: 'GPU Model 1' })).toHaveTextContent('RTX 4090');

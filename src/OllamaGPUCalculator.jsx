@@ -5,7 +5,6 @@ import {
     formatGB,
     getCompatibilityTier,
     suggestedContextForVram,
-    MODEL_PRESETS,
     getModelPreset,
     QUANT_OPTIONS,
     CONTEXT_OPTIONS,
@@ -13,6 +12,7 @@ import {
 } from './calculatorOutput';
 import CompatibilityBanner from './components/CompatibilityBanner';
 import GpuCombobox from './components/GpuCombobox';
+import ModelCombobox from './components/ModelCombobox';
 import FitTable from './components/FitTable';
 import ShareButton from './components/ShareButton';
 import { parseShareParams, buildShareQuery, GPU_COUNT_OPTIONS } from './shareState';
@@ -37,14 +37,6 @@ const NOTES = [
     'Cloud tags (e.g. *:cloud) run on Ollama Cloud — no local VRAM.',
     'Power figures account for utilization during LLM inference, not peak TDP.',
 ];
-
-// Preset dropdown sections, in data order (e.g. Google, Qwen, Meta, ... Ollama Cloud).
-const PRESET_GROUPS = [...MODEL_PRESETS.reduce((groups, preset) => {
-    const vendor = preset.vendor ?? 'Other';
-    if (!groups.has(vendor)) groups.set(vendor, []);
-    groups.get(vendor).push(preset);
-    return groups;
-}, new Map())];
 
 const statusLabel = {
     ok: 'Compatible',
@@ -315,25 +307,9 @@ const OllamaGPUCalculator = () => {
                         <div className="iw-field">
                             <label htmlFor="model-preset" className="iw-label">
                                 <span>Model Preset</span>
-                                <span className="iw-label-hint">optional</span>
+                                <span className="iw-label-hint">type to search</span>
                             </label>
-                            <select
-                                id="model-preset"
-                                className="iw-select"
-                                value={presetId}
-                                onChange={(e) => handlePresetChange(e.target.value)}
-                            >
-                                <option value="">— custom / enter params —</option>
-                                {PRESET_GROUPS.map(([vendor, presets]) => (
-                                    <optgroup key={vendor} label={vendor}>
-                                        {presets.map((p) => (
-                                            <option key={p.id} value={p.id}>
-                                                {p.cloudOnly ? `${p.label} · Ollama Cloud` : p.label}
-                                            </option>
-                                        ))}
-                                    </optgroup>
-                                ))}
-                            </select>
+                            <ModelCombobox id="model-preset" value={presetId} onChange={handlePresetChange} />
                             {selectedPreset?.cloudOnly && (
                                 <p className="iw-field-note" role="status">
                                     Use Ollama Cloud — no local VRAM. Local math is disabled for this tag.
