@@ -16,6 +16,7 @@ Everything runs in your browser. There is no backend and nothing to install.
 - **99 GPUs** across NVIDIA (Maxwell to Blackwell, consumer and data center), AMD (RDNA2 to RDNA4, Instinct CDNA1 to CDNA4, Ryzen AI) and Apple Silicon. You can search for a GPU by name.
 - **29 model presets** for current Ollama models, or enter any parameter count yourself. Three presets are cloud-only; they are labeled and are not counted in local VRAM math.
 - **"What can this setup run?" table.** Pick your GPUs and see every model preset ranked by fit, with required VRAM and estimated tokens/sec. Load any row into the calculator with one click.
+- **Shareable links.** The URL always reflects your setup, so you can copy it (or use **Copy link**) and anyone who opens it sees the same configuration.
 - **Mixture-of-experts aware.** VRAM uses total parameters, while tokens/sec uses active parameters.
 - **Quantization**: FP32, FP16/BF16, Q8_0, Q4_K_M, NVFP4 and MXFP4.
 - **KV cache types**: f16 (default), q8_0 and q4_0, matching Ollama's `OLLAMA_KV_CACHE_TYPE` setting, plus context lengths from 4K to 1M tokens.
@@ -37,6 +38,25 @@ The math lives in [`src/calculations.js`](src/calculations.js) and uses standard
 GPU specs are in [`src/data/gpuSpecs.js`](src/data/gpuSpecs.js) and model presets are in [`src/data/modelPresets.js`](src/data/modelPresets.js). Each preset links to its source.
 
 These are **estimates**. Real usage depends on the Ollama version, the backend (CUDA, ROCm, Metal, MLX), drivers, flash attention, batch size and what else is using the GPU. Leave some headroom.
+
+## Sharing a configuration
+
+The address bar updates as you change inputs. Links look like this:
+
+```text
+https://aleibovici.github.io/ollama-gpu-calculator/?model=qwen3.6-35b&quant=q4_k_m&kv=q8_0&ctx=32k&gpu=rtx4090*2
+```
+
+| Parameter | Meaning | Example |
+| --- | --- | --- |
+| `model` | Preset id (see [`modelPresets.js`](src/data/modelPresets.js)) | `gemma4-31b` |
+| `params` | Parameter count in billions, for a custom model | `70` |
+| `quant` | Quantization | `fp16`, `q8_0`, `q4_k_m`, `mxfp4` |
+| `kv` | KV cache type (omitted when `f16`) | `q8_0`, `q4_0` |
+| `ctx` | Context length | `4k` … `256k`, `1m` |
+| `gpu` | One per GPU row: GPU id, plus `*count` for more than one (see [`gpuSpecs.js`](src/data/gpuSpecs.js)) | `rtx4090*2` |
+
+Unknown or invalid values are ignored.
 
 ## Getting started
 
