@@ -15,6 +15,7 @@ Everything runs in your browser. There is no backend and nothing to install.
 
 - **99 GPUs** across NVIDIA (Maxwell to Blackwell, consumer and data center), AMD (RDNA2 to RDNA4, Instinct CDNA1 to CDNA4, Ryzen AI) and Apple Silicon. You can search for a GPU by name.
 - **29 model presets** for current Ollama models, or enter any parameter count yourself. Two presets are cloud-only; they are labeled and are not counted in local VRAM math.
+- **"What can this setup run?" table.** Pick your GPUs and see every model preset ranked by fit, with required VRAM and estimated tokens/sec. Load any row into the calculator with one click.
 - **Mixture-of-experts aware.** VRAM uses total parameters, while tokens/sec uses active parameters.
 - **Quantization**: FP32, FP16/BF16, Q8_0, Q4_K_M, NVFP4 and MXFP4.
 - **KV cache types**: f16 (default), q8_0 and q4_0, matching Ollama's `OLLAMA_KV_CACHE_TYPE` setting, plus context lengths from 4K to 1M tokens.

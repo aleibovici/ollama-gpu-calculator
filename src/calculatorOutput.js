@@ -7,10 +7,31 @@ import {
     parseQuantBits,
     suggestedContextForVram,
 } from './calculations';
-import { getModelPreset } from './data/modelPresets';
+import { getModelPreset, MODEL_PRESETS } from './data/modelPresets';
 
 export { parseQuantBits, suggestedContextForVram } from './calculations';
 export { getModelPreset, MODEL_PRESETS } from './data/modelPresets';
+
+export const QUANT_OPTIONS = [
+    { value: '32', label: 'FP32', hint: '32-bit' },
+    { value: '16', label: 'FP16', hint: 'BF16' },
+    { value: '8', label: 'Q8_0', hint: '8-bit' },
+    { value: '4.5', label: 'Q4_K_M', hint: '~4.5b' },
+    { value: '4', label: 'NVFP4', hint: 'MLX' },
+    { value: '4.25', label: 'MXFP4', hint: 'gpt-oss' },
+];
+
+export const CONTEXT_OPTIONS = [4096, 8192, 16384, 32768, 65536, 131072, 262144, 1048576];
+
+export function quantLabel(value) {
+    return QUANT_OPTIONS.find((opt) => opt.value === String(value))?.label ?? String(value);
+}
+
+/** Largest context option that is <= len (or the smallest option). */
+export function snapContextLength(len, options = CONTEXT_OPTIONS) {
+    const fitting = options.filter((n) => n <= len);
+    return fitting.length ? Math.max(...fitting) : options[0];
+}
 
 export function formatGB(gb) {
     return gb.toFixed(2);
@@ -286,4 +307,51 @@ export function runCalculator({
     });
 
     return { results, errors: {}, warnings, preset };
+}
+
+const TIER_ORDER = { ok: 0, warn: 1, bad: 2 };
+
+/**
+ * "What can my GPU run?" — evaluate every local preset against one GPU setup.
+ * Each preset runs at its default quantization, with the user's context
+ * (capped at the preset's max) and KV cache type. Rows are sorted: fits first,
+ * then borderline, then won't fit; largest required VRAM first within a tier.
+ */
+export function buildFitTable({
+    gpuConfigs,
+    contextLength,
+    kvCacheType = 'f16',
+    presets = MODEL_PRESETS,
+}) {
+    if (!gpuConfigs.some((config) => config.gpuModel)) return [];
+
+    const rows = [];
+    for (const preset of presets) {
+        if (preset.cloudOnly) continue;
+        const ctx = snapContextLength(Math.min(contextLength, preset.contextMax ?? contextLength));
+        const output = runCalculator({
+            parameters: String(preset.totalParamsB),
+            quantization: preset.defaultQuant,
+            contextLength: ctx,
+            gpuConfigs,
+            kvCacheType,
+            presetId: preset.id,
+        });
+        if (!output.results) continue;
+        rows.push({
+            preset,
+            quantization: preset.defaultQuant,
+            contextLength: ctx,
+            contextCapped: ctx < contextLength,
+            results: output.results,
+            tier: getCompatibilityTier(output.results),
+        });
+    }
+
+    rows.sort((a, b) =>
+        TIER_ORDER[a.tier] - TIER_ORDER[b.tier]
+        || b.results.totalGPURAM - a.results.totalGPURAM
+        || a.preset.label.localeCompare(b.preset.label)
+    );
+    return rows;
 }
