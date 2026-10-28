@@ -12,6 +12,7 @@
 
 ## Checklist
 
+- [ ] `bun run lint` passes
 - [ ] `bunx --bun vitest run` passes
 - [ ] `bun run build` passes
 - [ ] Spec or preset changes include a source link (vendor page, Ollama library page or model card)

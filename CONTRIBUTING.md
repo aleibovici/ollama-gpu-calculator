@@ -23,6 +23,7 @@ cd ollama-gpu-calculator
 bun install
 bun run start          # dev server
 bunx --bun vitest run  # run tests once
+bun run lint           # ESLint
 bun run build          # production build into dist/
 ```
 
@@ -33,7 +34,7 @@ bun run build          # production build into dist/
 1. Fork the repo and create a branch from `main` (for example `feat/add-rx-9060` or `fix/kv-cache-rounding`).
 2. Make your change. Keep each PR focused on one thing.
 3. Add or update tests when you change behavior.
-4. Run `bunx --bun vitest run` and `bun run build`. Both must pass.
+4. Run `bun run lint`, `bunx --bun vitest run` and `bun run build`. All three must pass.
 5. Open a PR and fill in the template. CI runs the same checks.
 
 ### Commit messages

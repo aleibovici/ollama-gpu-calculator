@@ -57,6 +57,7 @@ Then open the URL that Vite prints (usually <http://localhost:5173/ollama-gpu-ca
 | `bun run start` | Start the dev server with hot reload |
 | `bun run test` | Run the tests in watch mode |
 | `bunx --bun vitest run` | Run the tests once (what CI runs) |
+| `bun run lint` | Check the code with ESLint |
 | `bun run build` | Build for production into `dist/` |
 
 ## Project structure

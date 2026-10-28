@@ -11,12 +11,13 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 - Open source community files: `CONTRIBUTING.md`, `CODE_OF_CONDUCT.md` (Contributor Covenant 2.1), `SECURITY.md`, this changelog, issue forms, a pull request template, `CODEOWNERS`, `.editorconfig` and `.gitattributes`.
 - CI workflow that runs tests and a production build on every pull request.
 - Dependabot updates for Bun dependencies and GitHub Actions.
+- ESLint (flat config with React Hooks rules) and a `lint` script, run in CI.
 
 ### Changed
 
 - The deploy workflow now runs tests and installs from the frozen lockfile before publishing.
 - README rewritten with features, how the estimates work, project structure and a privacy note.
-- `package.json` now includes license, repository and description metadata.
+- `package.json` now includes license, repository and description metadata. The unused Create React App `eslintConfig` was removed.
 
 ## [0.1.0] - 2026-09-13
 
@@ -45,5 +46,5 @@ First versioned release. It covers all work up to this date.
 - Apple unified memory handling, quantization-aware minimum RAM and power calculation (April 2026).
 - GPU TFLOPS values and accessibility issues found by Lighthouse (March 2026).
 
-[Unreleased]: https://github.com/aleibovici/ollama-gpu-calculator/compare/23ef906...HEAD
-[0.1.0]: https://github.com/aleibovici/ollama-gpu-calculator/tree/23ef906
+[Unreleased]: https://github.com/aleibovici/ollama-gpu-calculator/compare/v0.1.0...HEAD
+[0.1.0]: https://github.com/aleibovici/ollama-gpu-calculator/releases/tag/v0.1.0
