@@ -13,8 +13,10 @@
 //      Single-batch autoregressive decode is memory-bandwidth-bound.
 
 import { gpuSpecs } from './data/gpuSpecs.js';
+import { KvCacheType, ScheduleMode, assertNever } from './modes.js';
 
 export { gpuSpecs } from './data/gpuSpecs.js';
+export { ScheduleMode, KvCacheType } from './modes.js';
 
 // Standard transformer scaling approximation.
 // params ≈ 12·L·d² with aspect ratio d/L ≈ 128 (LLaMA 7B: 4096/32, 13B: 5120/40,
@@ -24,9 +26,9 @@ export { gpuSpecs } from './data/gpuSpecs.js';
 const TRANSFORMER_ASPECT_RATIO = 128;
 
 export const KV_CACHE_TYPES = {
-    f16: { label: 'f16', bytesPerElem: 2 },
-    q8_0: { label: 'q8_0', bytesPerElem: 1 },
-    q4_0: { label: 'q4_0', bytesPerElem: 0.5 },
+    [KvCacheType.F16]: { label: 'f16', bytesPerElem: 2 },
+    [KvCacheType.Q8_0]: { label: 'q8_0', bytesPerElem: 1 },
+    [KvCacheType.Q4_0]: { label: 'q4_0', bytesPerElem: 0.5 },
 };
 
 export function estimateTransformerShape(paramCount) {
@@ -47,7 +49,7 @@ export function calculateBaseModelSizeGB(paramCount, quantBits) {
  * @param {{ kvCacheType?: string, gqaRatio?: number }} [options]
  */
 export function calculateKvCacheGB(paramCount, contextLength, options = {}) {
-    const kvCacheType = options.kvCacheType ?? 'f16';
+    const kvCacheType = options.kvCacheType ?? KvCacheType.F16;
     const gqaRatio = options.gqaRatio ?? 1;
     const bytesPerElem = KV_CACHE_TYPES[kvCacheType]?.bytesPerElem ?? 2;
     const { dModel, nLayers } = estimateTransformerShape(paramCount);
@@ -117,19 +119,24 @@ const DECODE_BANDWIDTH_EFFICIENCY = 0.85;
 
 // Multi-GPU tensor/pipeline-parallel scaling is sub-linear. These factors are
 // applied to the summed bandwidth of a homogeneous config.
-function multiGpuScalingFactor(totalGpus, scheduleMode = 'split') {
+function multiGpuScalingFactor(totalGpus, scheduleMode = ScheduleMode.SPLIT) {
     if (totalGpus <= 1) return 1.0;
     // Stronger PCIe penalty when the model must be split across GPUs.
-    if (scheduleMode === 'split') {
-        if (totalGpus === 2) return 0.82;
-        if (totalGpus === 3) return 0.72;
-        if (totalGpus === 4) return 0.64;
-        return 0.55;
+    switch (scheduleMode) {
+        case ScheduleMode.SPLIT:
+            if (totalGpus === 2) return 0.82;
+            if (totalGpus === 3) return 0.72;
+            if (totalGpus === 4) return 0.64;
+            return 0.55;
+        case ScheduleMode.SINGLE:
+        case ScheduleMode.NONE:
+            if (totalGpus === 2) return 0.90;
+            if (totalGpus === 3) return 0.82;
+            if (totalGpus === 4) return 0.75;
+            return 0.65;
+        default:
+            return assertNever(scheduleMode);
     }
-    if (totalGpus === 2) return 0.90;
-    if (totalGpus === 3) return 0.82;
-    if (totalGpus === 4) return 0.75;
-    return 0.65;
 }
 
 export function parseActiveGpuConfigs(gpuConfigs) {
@@ -150,7 +157,7 @@ export function parseActiveGpuConfigs(gpuConfigs) {
 function normalizeModelOptions(paramCount, options = {}) {
     const totalParamsB = options.totalParamsB ?? paramCount;
     const activeParamsB = options.activeParamsB ?? totalParamsB;
-    const kvCacheType = options.kvCacheType ?? 'f16';
+    const kvCacheType = options.kvCacheType ?? KvCacheType.F16;
     const gqaRatio = options.gqaRatio ?? 1;
     const multimodalOverheadGB = options.multimodalOverheadGB ?? 0;
     return {
@@ -236,12 +243,12 @@ function isUnifiedMemorySetupFromActive(active) {
  */
 function resolveSchedule(model, pool) {
     if (pool.totalGpuCount === 0) {
-        return { scheduleMode: 'none', fittingGpu: null };
+        return { scheduleMode: ScheduleMode.NONE, fittingGpu: null };
     }
     if (model.totalGPURAM <= pool.maxSingleVram || pool.totalGpuCount === 1) {
-        return { scheduleMode: 'single', fittingGpu: pool.bestSingle };
+        return { scheduleMode: ScheduleMode.SINGLE, fittingGpu: pool.bestSingle };
     }
-    return { scheduleMode: 'split', fittingGpu: null };
+    return { scheduleMode: ScheduleMode.SPLIT, fittingGpu: null };
 }
 
 function buildRamResult(model, pool, active, quantBits, schedule) {
@@ -253,15 +260,21 @@ function buildRamResult(model, pool, active, quantBits, schedule) {
     let effectiveVRAM;
     let multiGpuEfficiency = 1;
 
-    if (schedule.scheduleMode === 'single') {
-        // Prefer single-GPU path: use the largest GPU that can hold the model.
-        effectiveVRAM = pool.maxSingleVram;
-    } else if (pool.totalGpuCount > 1) {
-        // Split path: pooled VRAM with a stronger multi-GPU efficiency haircut.
-        multiGpuEfficiency = 0.85;
-        effectiveVRAM = pool.totalAvailableVRAM * multiGpuEfficiency;
-    } else {
-        effectiveVRAM = pool.totalAvailableVRAM;
+    switch (schedule.scheduleMode) {
+        case ScheduleMode.SINGLE:
+            // Prefer single-GPU path: use the largest GPU that can hold the model.
+            effectiveVRAM = pool.maxSingleVram;
+            break;
+        case ScheduleMode.SPLIT:
+            // Split path: pooled VRAM with a stronger multi-GPU efficiency haircut.
+            multiGpuEfficiency = 0.85;
+            effectiveVRAM = pool.totalAvailableVRAM * multiGpuEfficiency;
+            break;
+        case ScheduleMode.NONE:
+            effectiveVRAM = pool.totalAvailableVRAM;
+            break;
+        default:
+            assertNever(schedule.scheduleMode);
     }
 
     const vramMargin = effectiveVRAM - model.totalGPURAM;
@@ -296,7 +309,7 @@ function computeTokensPerSecondFromMetrics(model, pool, schedule) {
     const bytesPerToken = model.activeWeightSizeGB + model.kvCacheSize;
     if (bytesPerToken <= 0) return null;
 
-    if (schedule.scheduleMode === 'single' && schedule.fittingGpu) {
+    if (schedule.scheduleMode === ScheduleMode.SINGLE && schedule.fittingGpu) {
         const bw = schedule.fittingGpu.spec.bandwidth;
         return Math.round((bw * DECODE_BANDWIDTH_EFFICIENCY) / bytesPerToken);
     }
@@ -311,7 +324,7 @@ function computeTokensPerSecondFromMetrics(model, pool, schedule) {
 
 function resolvePowerActive(active, schedule = null) {
     // Fit-one-first: only the card that holds the model draws inference power.
-    if (schedule?.scheduleMode === 'single' && schedule.fittingGpu) {
+    if (schedule?.scheduleMode === ScheduleMode.SINGLE && schedule.fittingGpu) {
         return [{ ...schedule.fittingGpu, count: 1 }];
     }
     return active;

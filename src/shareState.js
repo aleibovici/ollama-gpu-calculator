@@ -19,9 +19,9 @@ import {
     getModelPreset,
 } from './calculatorOutput';
 import { gpuSpecs } from './data/gpuSpecs';
+import { KvCacheType, isKvCacheType } from './modes';
 
 export const GPU_COUNT_OPTIONS = [1, 2, 3, 4, 8];
-const KV_TYPES = ['f16', 'q8_0', 'q4_0'];
 const MAX_GPU_ROWS = 8;
 
 function quantToParam(value) {
@@ -74,7 +74,7 @@ export function parseShareParams(search) {
     if (gpuConfigs.length) state.gpuConfigs = gpuConfigs;
 
     const kv = params.get('kv');
-    if (KV_TYPES.includes(kv)) state.kvCacheType = kv;
+    if (isKvCacheType(kv)) state.kvCacheType = kv;
 
     const quant = quantFromParam(params.get('quant'));
     const ctx = contextFromParam(params.get('ctx'));
@@ -124,7 +124,7 @@ export function buildShareQuery({ presetId, parameters, quantization, kvCacheTyp
             const q = quantToParam(quantization);
             if (q) parts.push(['quant', q]);
         }
-        if (kvCacheType && kvCacheType !== 'f16') parts.push(['kv', kvCacheType]);
+        if (kvCacheType && kvCacheType !== KvCacheType.F16) parts.push(['kv', kvCacheType]);
         parts.push(['ctx', contextToParam(contextLength)]);
     }
 

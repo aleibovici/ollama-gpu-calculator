@@ -1,4 +1,5 @@
 import { formatGB, getCompatibilityTier } from '../calculatorOutput';
+import { CompatibilityTier, assertNever } from '../modes';
 
 const INSUFFICIENT_SUGGESTIONS = [
     'Add another GPU to the configuration.',
@@ -7,18 +8,36 @@ const INSUFFICIENT_SUGGESTIONS = [
     'Pick a GPU with larger VRAM.',
 ];
 
+function advisoryTitle(variant) {
+    switch (variant) {
+        case CompatibilityTier.BAD:
+            return 'Advisory · Action Required';
+        case CompatibilityTier.OK:
+        case CompatibilityTier.WARN:
+            return 'Advisory';
+        default:
+            return assertNever(variant);
+    }
+}
+
 const CompatibilityBanner = ({ results, warnings }) => {
     if (!results) return null;
     const variant = getCompatibilityTier(results);
 
     const items = [];
 
-    if (variant === 'warn') {
-        items.push(`Only ${formatGB(results.vramMargin)}GB VRAM margin — consider reducing context or adding capacity.`);
-    }
-    if (variant === 'bad') {
-        items.push(`Short by ${formatGB(Math.abs(results.vramMargin))}GB of VRAM.`);
-        INSUFFICIENT_SUGGESTIONS.forEach((s) => items.push(s));
+    switch (variant) {
+        case CompatibilityTier.WARN:
+            items.push(`Only ${formatGB(results.vramMargin)}GB VRAM margin — consider reducing context or adding capacity.`);
+            break;
+        case CompatibilityTier.BAD:
+            items.push(`Short by ${formatGB(Math.abs(results.vramMargin))}GB of VRAM.`);
+            INSUFFICIENT_SUGGESTIONS.forEach((s) => items.push(s));
+            break;
+        case CompatibilityTier.OK:
+            break;
+        default:
+            assertNever(variant);
     }
     if (warnings && warnings.length) {
         warnings.forEach((w) => items.push(w));
@@ -27,9 +46,9 @@ const CompatibilityBanner = ({ results, warnings }) => {
     if (items.length === 0) return null;
 
     return (
-        <div className={`iw-advisory ${variant === 'bad' ? 'is-bad' : ''}`}>
+        <div className={`iw-advisory ${variant === CompatibilityTier.BAD ? 'is-bad' : ''}`}>
             <div className="iw-advisory-title">
-                {variant === 'bad' ? 'Advisory · Action Required' : 'Advisory'}
+                {advisoryTitle(variant)}
             </div>
             <ul>
                 {items.map((text, i) => <li key={i}>{text}</li>)}

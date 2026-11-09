@@ -17,12 +17,17 @@ import FitTable from './components/FitTable';
 import ShareButton from './components/ShareButton';
 import { parseShareParams, buildShareQuery, GPU_COUNT_OPTIONS } from './shareState';
 import { gpuSpecs } from './data/gpuSpecs';
-
-const KV_CACHE_OPTIONS = [
-    { value: 'f16', label: 'f16', hint: 'default' },
-    { value: 'q8_0', label: 'q8_0', hint: '~½' },
-    { value: 'q4_0', label: 'q4_0', hint: '~¼' },
-];
+import {
+    KV_CACHE_OPTIONS,
+    ThemeMode,
+    applyTheme,
+    compatibilityStatusLabel,
+    readDocumentTheme,
+    scheduleAvailableVramDetail,
+    scheduleThroughputDetail,
+    themeToggleAriaLabel,
+    toggleTheme,
+} from './modes';
 
 const NOTES = [
     'Estimates are ballpark — Ollama’s scheduler measures exact memory at load time; this tool does not.',
@@ -36,14 +41,6 @@ const NOTES = [
     'NVIDIA driver floor is typically 550+ (570+ for older compute capabilities).',
     'Power figures account for utilization during LLM inference, not peak TDP.',
 ];
-
-const statusLabel = {
-    ok: 'Compatible',
-    warn: 'Borderline',
-    bad: 'Insufficient',
-};
-
-const THEME_STORAGE_KEY = 'ogc-theme';
 
 function formatContextLabel(len) {
     if (len >= 1048576) return `${len / 1048576}M tokens · ${len.toLocaleString()}`;
@@ -73,9 +70,7 @@ const OllamaGPUCalculator = () => {
         () => initial.gpuConfigs?.map((cfg, i) => ({ id: i + 1, ...cfg }))
             ?? [{ id: 1, gpuModel: '', count: '1' }]
     );
-    const [theme, setTheme] = useState(
-        () => (document.documentElement.getAttribute('data-theme') === 'light' ? 'light' : 'dark')
-    );
+    const [theme, setTheme] = useState(readDocumentTheme);
 
     const selectedPreset = useMemo(() => getModelPreset(presetId), [presetId]);
     const suggestedCtx = useMemo(() => {
@@ -149,12 +144,7 @@ const OllamaGPUCalculator = () => {
     }, [shareQuery]);
 
     useEffect(() => {
-        document.documentElement.setAttribute('data-theme', theme);
-        try {
-            window.localStorage.setItem(THEME_STORAGE_KEY, theme);
-        } catch {
-            // Ignore storage write issues to avoid impacting calculator behavior.
-        }
+        applyTheme(theme);
     }, [theme]);
 
     const handlePresetChange = (id) => {
@@ -202,7 +192,7 @@ const OllamaGPUCalculator = () => {
     };
 
     const handleThemeToggle = () => {
-        setTheme((currentTheme) => (currentTheme === 'dark' ? 'light' : 'dark'));
+        setTheme((currentTheme) => toggleTheme(currentTheme));
     };
 
     const addGpuConfig = () => {
@@ -237,9 +227,9 @@ const OllamaGPUCalculator = () => {
                 <div className="iw-theme-toggle-wrap">
                     <button
                         type="button"
-                        className={`iw-theme-toggle ${theme === 'light' ? 'is-light' : 'is-dark'}`}
-                        aria-label={theme === 'dark' ? 'Switch to light theme' : 'Switch to dark theme'}
-                        aria-pressed={theme === 'light'}
+                        className={`iw-theme-toggle ${theme === ThemeMode.LIGHT ? 'is-light' : 'is-dark'}`}
+                        aria-label={themeToggleAriaLabel(theme)}
+                        aria-pressed={theme === ThemeMode.LIGHT}
                         onClick={handleThemeToggle}
                     >
                         <span className="iw-theme-toggle-track">
@@ -475,7 +465,7 @@ const OllamaGPUCalculator = () => {
                             <div className="iw-status" data-state={statusState}>
                                 <div>
                                     <span className="iw-status-dot" />
-                                    <span className="iw-status-label">{statusLabel[statusState]}</span>
+                                    <span className="iw-status-label">{compatibilityStatusLabel(statusState)}</span>
                                 </div>
                                 <span className="iw-status-meta">{results.gpuConfig || '—'}</span>
                             </div>
@@ -542,7 +532,7 @@ const OllamaGPUCalculator = () => {
                                         {results.tokensPerSecond ?? '—'}<span className="iw-metric-unit">tok/s</span>
                                     </div>
                                     <div className="iw-metric-detail">
-                                        {results.scheduleMode === 'single' ? 'Single-GPU path' : 'Estimated decode rate'}
+                                        {scheduleThroughputDetail(results.scheduleMode)}
                                     </div>
                                 </div>
 
@@ -567,11 +557,7 @@ const OllamaGPUCalculator = () => {
                                         {formatGB(results.effectiveVRAM)}<span className="iw-metric-unit">GB</span>
                                     </div>
                                     <div className="iw-metric-detail">
-                                        {results.scheduleMode === 'single'
-                                            ? 'Best single GPU (fit-one-first)'
-                                            : results.scheduleMode === 'split'
-                                              ? 'After multi-GPU / driver haircut'
-                                              : 'Configured VRAM pool'}
+                                        {scheduleAvailableVramDetail(results.scheduleMode)}
                                     </div>
                                 </div>
                             </div>

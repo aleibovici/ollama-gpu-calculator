@@ -8,9 +8,23 @@ import {
     suggestedContextForVram,
 } from './calculations';
 import { getModelPreset, MODEL_PRESETS } from './data/modelPresets';
+import {
+    COMPATIBILITY_TIER_ORDER,
+    KvCacheType,
+    ScheduleMode,
+    assertNever,
+    compatibilityTierFromFlags,
+    deriveCompatibility,
+} from './modes';
 
 export { parseQuantBits, suggestedContextForVram } from './calculations';
 export { getModelPreset, MODEL_PRESETS } from './data/modelPresets';
+export {
+    CompatibilityTier,
+    ScheduleMode,
+    compatibilityStatusLabel,
+    compatibilityFitLabel,
+} from './modes';
 
 export const QUANT_OPTIONS = [
     { value: '32', label: 'FP32', hint: '32-bit' },
@@ -40,9 +54,7 @@ export function formatGB(gb) {
 /** Shared ok | warn | bad tier for status readout and advisory banner. */
 export function getCompatibilityTier(results) {
     if (!results) return null;
-    if (results.isCompatible && !results.isBorderline) return 'ok';
-    if (results.isBorderline) return 'warn';
-    return 'bad';
+    return compatibilityTierFromFlags(results.isCompatible, results.isBorderline);
 }
 
 export function validateCalculatorInputs({ parameters, gpuConfigs }) {
@@ -85,10 +97,16 @@ function buildCalculatorResults(ramCalc, tokensPerSecond, powerCalc, active, ext
         .map(({ count, spec }) => `${count}x ${spec.name}`)
         .join(' + ');
 
+    const { isCompatible, isBorderline } = deriveCompatibility(
+        ramCalc.vramMargin,
+        ramCalc.effectiveVRAM,
+        ramCalc.totalGPURAM
+    );
+
     return {
         ...ramCalc,
-        isCompatible: ramCalc.effectiveVRAM >= ramCalc.totalGPURAM,
-        isBorderline: ramCalc.vramMargin > 0 && ramCalc.vramMargin < 2,
+        isCompatible,
+        isBorderline,
         gpuConfig: gpuConfigString,
         tokensPerSecond,
         powerConsumption: powerCalc,
@@ -140,22 +158,32 @@ export function buildWarnings({
         );
     }
 
-    if (results.scheduleMode === 'single' && totalGpuCount > 1) {
-        warnings.push(
-            'Model fits on one GPU — Ollama prefers a single-GPU path (pooled multi-GPU split not required)'
-        );
-    } else if (results.scheduleMode === 'split' && totalGpuCount > 1) {
-        warnings.push(
-            'Model exceeds a single GPU — estimate assumes a split across GPUs with PCIe overhead (ballpark, not Ollama’s measured scheduler)'
-        );
+    switch (results.scheduleMode) {
+        case ScheduleMode.SINGLE:
+            if (totalGpuCount > 1) {
+                warnings.push(
+                    'Model fits on one GPU — Ollama prefers a single-GPU path (pooled multi-GPU split not required)'
+                );
+            }
+            break;
+        case ScheduleMode.SPLIT:
+            if (totalGpuCount > 1) {
+                warnings.push(
+                    'Model exceeds a single GPU — estimate assumes a split across GPUs with PCIe overhead (ballpark, not Ollama’s measured scheduler)'
+                );
+            }
+            if (totalGpuCount > 2) {
+                warnings.push('Multi-GPU scaling efficiency decreases with more than 2 GPUs');
+            }
+            break;
+        case ScheduleMode.NONE:
+            break;
+        default:
+            assertNever(results.scheduleMode);
     }
 
     if (Number.isFinite(paramCount) && paramCount > 13 && !results.isMoE) {
         warnings.push('Models larger than 13B parameters may require multiple GPUs for optimal performance');
-    }
-
-    if (totalGpuCount > 2 && results.scheduleMode === 'split') {
-        warnings.push('Multi-GPU scaling efficiency decreases with more than 2 GPUs');
     }
 
     if (generations.has('Pascal')) {
@@ -180,7 +208,7 @@ export function buildWarnings({
         warnings.push('8-bit quantization offers good balance of speed and accuracy');
     }
 
-    if (options.kvCacheType && options.kvCacheType !== 'f16') {
+    if (options.kvCacheType && options.kvCacheType !== KvCacheType.F16) {
         warnings.push(
             `KV cache ${options.kvCacheType} reduces cache VRAM (requires Flash Attention / OLLAMA_FLASH_ATTENTION)`
         );
@@ -220,7 +248,7 @@ export function runCalculator({
     quantization,
     contextLength,
     gpuConfigs,
-    kvCacheType = 'f16',
+    kvCacheType = KvCacheType.F16,
     presetId = null,
     gqaRatio = null,
     multimodalOverheadGB = null,
@@ -264,8 +292,6 @@ export function runCalculator({
     return { results, errors: {}, warnings, preset };
 }
 
-const TIER_ORDER = { ok: 0, warn: 1, bad: 2 };
-
 /**
  * "What can my GPU run?" — evaluate every preset against one GPU setup.
  * Each preset runs at its default quantization, with the user's context
@@ -275,7 +301,7 @@ const TIER_ORDER = { ok: 0, warn: 1, bad: 2 };
 export function buildFitTable({
     gpuConfigs,
     contextLength,
-    kvCacheType = 'f16',
+    kvCacheType = KvCacheType.F16,
     presets = MODEL_PRESETS,
 }) {
     if (!gpuConfigs.some((config) => config.gpuModel)) return [];
@@ -303,7 +329,7 @@ export function buildFitTable({
     }
 
     rows.sort((a, b) =>
-        TIER_ORDER[a.tier] - TIER_ORDER[b.tier]
+        COMPATIBILITY_TIER_ORDER[a.tier] - COMPATIBILITY_TIER_ORDER[b.tier]
         || b.results.totalGPURAM - a.results.totalGPURAM
         || a.preset.label.localeCompare(b.preset.label)
     );
