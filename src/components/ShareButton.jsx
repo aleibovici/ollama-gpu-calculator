@@ -1,5 +1,11 @@
 import React, { useEffect, useRef, useState } from 'react';
 import ReactGA from 'react-ga4';
+import {
+    ShareStatus,
+    shareButtonIcon,
+    shareButtonLabel,
+    shareStatusAnnouncement,
+} from '../modes';
 
 async function copyText(text) {
     if (navigator.clipboard?.writeText) {
@@ -21,7 +27,7 @@ async function copyText(text) {
 
 /** Copies the current page URL, which always reflects the calculator inputs. */
 const ShareButton = () => {
-    const [status, setStatus] = useState('idle'); // idle | copied | failed
+    const [status, setStatus] = useState(ShareStatus.IDLE);
     const timer = useRef(null);
 
     useEffect(() => () => clearTimeout(timer.current), []);
@@ -30,26 +36,22 @@ const ShareButton = () => {
         clearTimeout(timer.current);
         try {
             await copyText(window.location.href);
-            setStatus('copied');
+            setStatus(ShareStatus.COPIED);
             ReactGA.event({ category: 'Share', action: 'Copy Link' });
         } catch {
-            setStatus('failed');
+            setStatus(ShareStatus.FAILED);
         }
-        timer.current = setTimeout(() => setStatus('idle'), 2500);
+        timer.current = setTimeout(() => setStatus(ShareStatus.IDLE), 2500);
     };
-
-    const icon = status === 'copied' ? '✓' : '⧉';
-    const label = status === 'copied' ? 'Link copied' : status === 'failed' ? 'Copy from address bar' : 'Copy link';
 
     return (
         <>
             <button type="button" className="iw-share-btn" data-state={status} onClick={handleClick}>
-                <span aria-hidden="true">{icon} </span>
-                {label}
+                <span aria-hidden="true">{shareButtonIcon(status)} </span>
+                {shareButtonLabel(status)}
             </button>
             <span className="iw-visually-hidden" role="status">
-                {status === 'copied' ? 'Link to this configuration copied' : ''}
-                {status === 'failed' ? 'Could not copy. Copy the link from the address bar.' : ''}
+                {shareStatusAnnouncement(status)}
             </span>
         </>
     );

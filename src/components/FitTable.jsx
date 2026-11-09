@@ -1,11 +1,6 @@
 import React, { useState } from 'react';
 import { formatGB, quantLabel } from '../calculatorOutput';
-
-const FIT_LABEL = {
-    ok: 'Fits',
-    warn: 'Tight',
-    bad: "Won't fit",
-};
+import { CompatibilityTier, compatibilityFitLabel } from '../modes';
 
 function formatContext(len) {
     return len >= 1048576 ? `${len / 1048576}M` : `${len / 1024}k`;
@@ -13,7 +8,7 @@ function formatContext(len) {
 
 function FitRow({ row, isCurrent, onLoad }) {
     const { preset, results, tier } = row;
-    const fits = tier !== 'bad';
+    const fits = tier !== CompatibilityTier.BAD;
     const tags = [];
     if (preset.moe && !preset.label.includes('MoE')) tags.push(`MoE · ${preset.activeParamsB}B active`);
     if (preset.modalities?.includes('vision')) tags.push('vision');
@@ -23,7 +18,7 @@ function FitRow({ row, isCurrent, onLoad }) {
         <tr data-state={tier} aria-current={isCurrent ? 'true' : undefined} className={isCurrent ? 'is-current' : ''}>
             <td className="iw-fit-status">
                 <span className="iw-fit-dot" aria-hidden="true" />
-                <span className="iw-fit-status-text">{FIT_LABEL[tier]}</span>
+                <span className="iw-fit-status-text">{compatibilityFitLabel(tier)}</span>
             </td>
             <th scope="row" className="iw-fit-model">
                 {preset.label}
@@ -57,9 +52,11 @@ function FitRow({ row, isCurrent, onLoad }) {
  */
 const FitTable = ({ rows, current, gpuLabel, contextLength, kvCacheType, onLoad }) => {
     const [showAll, setShowAll] = useState(false);
-    const fitCount = rows.filter((r) => r.tier !== 'bad').length;
+    const fitCount = rows.filter((r) => r.tier !== CompatibilityTier.BAD).length;
     const hiddenCount = rows.length - fitCount;
-    const visibleRows = showAll || fitCount === 0 ? rows : rows.filter((r) => r.tier !== 'bad');
+    const visibleRows = showAll || fitCount === 0
+        ? rows
+        : rows.filter((r) => r.tier !== CompatibilityTier.BAD);
 
     return (
         <section className="iw-panel iw-fit" aria-labelledby="fit-heading">
